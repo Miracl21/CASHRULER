@@ -126,15 +126,15 @@ const StatisticsPage: FC = () => {
       <div className="p-4 space-y-6 bg-background pb-8 overflow-x-hidden">
         <h1 className="text-xl font-bold text-foreground">Statistiques</h1>
 
-        <Card className="shadow-md">
+        <Card className="shadow-md overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center text-foreground"><PieChartIcon className="mr-2 h-5 w-5 text-primary" />Répartition des Dépenses</CardTitle>
             <CardDescription>Visualisez où va votre argent. ({CURRENCY_SYMBOL})</CardDescription>
           </CardHeader>
           <CardContent>
             {expenseByCategoryData.length > 0 ? (
-              <ChartContainer config={expenseChartConfig} className="mx-auto aspect-square max-h-[280px] w-full min-w-0">
-                <ResponsiveContainer width="100%" height="100%">
+              <ChartContainer config={expenseChartConfig} className="mx-auto max-h-[300px] w-full">
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <ChartTooltip
                       cursor={false}
@@ -145,9 +145,9 @@ const StatisticsPage: FC = () => {
                       dataKey="total"
                       nameKey="category"
                       cx="50%"
-                      cy="50%"
-                      outerRadius={100}
-                      innerRadius={50}
+                      cy="45%"
+                      outerRadius="32%"
+                      innerRadius="16%"
                       labelLine={false}
                     >
                       {expenseByCategoryData.map((entry, index) => (
@@ -164,16 +164,16 @@ const StatisticsPage: FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-md">
+        <Card className="shadow-md overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center text-foreground"><BarChartIconLucide className="mr-2 h-5 w-5 text-primary" />Revenus vs Dépenses</CardTitle>
             <CardDescription>Comparez vos entrées et sorties d'argent. ({CURRENCY_SYMBOL})</CardDescription>
           </CardHeader>
           <CardContent>
             {(totalIncome > 0 || totalExpenses > 0) ? (
-              <ChartContainer config={incomeExpenseChartConfig} className="w-full h-[250px] min-w-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={incomeExpenseData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+              <ChartContainer config={incomeExpenseChartConfig} className="w-full h-[250px]">
+                <ResponsiveContainer width="99%" height="100%">
+                  <BarChart data={incomeExpenseData} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis
                       dataKey="type"
@@ -205,16 +205,16 @@ const StatisticsPage: FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-md">
+        <Card className="shadow-md overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center text-foreground"><Activity className="mr-2 h-5 w-5 text-primary" />Tendances Financières</CardTitle>
             <CardDescription>Évolution de vos revenus et dépenses dans le temps. ({CURRENCY_SYMBOL})</CardDescription>
           </CardHeader>
           <CardContent>
             {trendsData.length > 0 ? (
-              <ChartContainer config={trendsChartConfig} className="w-full h-[250px] min-w-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendsData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+              <ChartContainer config={trendsChartConfig} className="w-full h-[250px]">
+                <ResponsiveContainer width="99%" height="100%">
+                  <LineChart data={trendsData} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
                     <YAxis tickFormatter={(value) => `${value.toLocaleString('fr-FR')}`} stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
