@@ -4,90 +4,99 @@
 
 @layer base {
   :root {
-    --background: 125 50% 94%; /* Light desaturated green #E8F5E9 */
-    --foreground: 120 25% 15%; /* Dark green-gray for text */
+    /* ── Core: Clean white/gray base with emerald accents ── */
+    --background: 0 0% 98%;
+    --foreground: 220 15% 18%;
 
-    --card: 125 50% 98%;
-    --card-foreground: 120 25% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 18%;
 
-    --popover: 125 50% 98%;
-    --popover-foreground: 120 25% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 18%;
 
-    --primary: 123 40% 38%; /* Forest Green #388E3C */
-    --primary-foreground: 120 100% 98%; /* Very light green/white */
+    /* Primary: Rich Emerald */
+    --primary: 152 60% 36%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 100 45% 55%; /* A slightly different green */
-    --secondary-foreground: 120 25% 15%;
+    /* Secondary: Cool Slate */
+    --secondary: 215 20% 93%;
+    --secondary-foreground: 220 15% 25%;
 
-    --muted: 125 40% 88%;
-    --muted-foreground: 120 20% 35%;
+    /* Muted */
+    --muted: 220 14% 95%;
+    --muted-foreground: 220 10% 46%;
 
-    --accent: 88 50% 59%; /* Yellow-Green #8BC34A */
-    --accent-foreground: 120 25% 15%; /* Dark text on accent */
+    /* Accent: Teal */
+    --accent: 173 58% 39%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 70% 55%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 123 30% 70%;
-    --input: 123 30% 85%; /* Lighter input background for better contrast on light green */
-    --ring: 123 40% 38%; /* Primary color for focus rings */
+    --border: 220 13% 89%;
+    --input: 220 13% 91%;
+    --ring: 152 60% 36%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    /* Sidebar specific colors (may not be heavily used in this mobile-first design but good to theme) */
-    --sidebar-background: 123 35% 30%;
-    --sidebar-foreground: 120 30% 90%;
-    --sidebar-primary: 88 50% 59%;
-    --sidebar-primary-foreground: 120 25% 15%;
-    --sidebar-accent: 123 40% 45%;
-    --sidebar-accent-foreground: 120 30% 95%;
-    --sidebar-border: 123 35% 40%;
-    --sidebar-ring: 88 50% 59%;
+    /* Sidebar */
+    --sidebar-background: 152 45% 18%;
+    --sidebar-foreground: 152 10% 92%;
+    --sidebar-primary: 162 72% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 152 35% 28%;
+    --sidebar-accent-foreground: 152 10% 92%;
+    --sidebar-border: 152 30% 25%;
+    --sidebar-ring: 162 72% 45%;
 
-    /* Chart colors */
-    --chart-1: 123 40% 38%; /* Primary */
-    --chart-2: 88 50% 59%;  /* Accent */
-    --chart-3: 100 45% 55%; /* Secondary */
-    --chart-4: 123 40% 60%; /* Lighter Primary */
-    --chart-5: 88 50% 75%;  /* Lighter Accent */
+    /* ── Chart colors: HIGH CONTRAST distinct hues ── */
+    --chart-1: 152 60% 36%;
+    /* Emerald (primary) — income */
+    --chart-2: 0 72% 51%;
+    /* Red — expenses */
+    --chart-3: 217 91% 60%;
+    /* Bright Blue */
+    --chart-4: 35 92% 50%;
+    /* Orange */
+    --chart-5: 270 70% 58%;
+    /* Purple */
   }
 
   .dark {
-    /* Define dark theme variables if needed in the future, for now, focus on light theme */
-    --background: 120 25% 10%;
-    --foreground: 125 50% 94%;
+    --background: 222 20% 8%;
+    --foreground: 210 20% 92%;
 
-    --card: 120 25% 12%;
-    --card-foreground: 125 50% 94%;
+    --card: 222 18% 12%;
+    --card-foreground: 210 20% 92%;
 
-    --popover: 120 25% 12%;
-    --popover-foreground: 125 50% 94%;
+    --popover: 222 18% 12%;
+    --popover-foreground: 210 20% 92%;
 
-    --primary: 123 40% 45%;
-    --primary-foreground: 120 25% 10%;
+    --primary: 162 72% 45%;
+    --primary-foreground: 220 20% 8%;
 
-    --secondary: 100 45% 40%;
-    --secondary-foreground: 125 50% 94%;
+    --secondary: 215 15% 20%;
+    --secondary-foreground: 210 20% 88%;
 
-    --muted: 125 20% 20%;
-    --muted-foreground: 125 40% 70%;
+    --muted: 215 15% 18%;
+    --muted-foreground: 215 12% 55%;
 
-    --accent: 88 50% 50%;
-    --accent-foreground: 120 25% 10%;
+    --accent: 173 58% 36%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 70% 50%;
+    --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 123 30% 30%;
-    --input: 123 30% 25%;
-    --ring: 123 40% 45%;
+    --border: 215 15% 22%;
+    --input: 215 15% 20%;
+    --ring: 162 72% 45%;
 
-    /* Chart colors dark */
-    --chart-1: 123 40% 45%;
-    --chart-2: 88 50% 50%;
-    --chart-3: 100 45% 40%;
-    --chart-4: 123 40% 30%;
-    --chart-5: 88 50% 35%;
+    /* Chart colors dark — brighter versions */
+    --chart-1: 162 72% 50%;
+    --chart-2: 0 85% 60%;
+    --chart-3: 217 91% 65%;
+    --chart-4: 35 92% 55%;
+    --chart-5: 270 70% 65%;
   }
 }
 
@@ -95,15 +104,18 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     overscroll-behavior-y: contain;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
   }
-  
+
   /* Allow text selection in inputs and textareas */
-  input, textarea, [contenteditable] {
+  input,
+  textarea,
+  [contenteditable] {
     user-select: text;
   }
 }

@@ -23,7 +23,7 @@ const StatisticsPage: FC = () => {
         .reduce((sum, e) => sum + e.amount, 0);
       return {
         category: category.label,
-        name: category.name, 
+        name: category.name,
         total: total,
       };
     }).filter(d => d.total > 0);
@@ -35,16 +35,16 @@ const StatisticsPage: FC = () => {
     'hsl(var(--chart-3))',
     'hsl(var(--chart-4))',
     'hsl(var(--chart-5))',
-    'hsl(var(--primary))',
-    'hsl(var(--accent))',
-    'hsl(var(--secondary))',
-    'hsl(var(--muted-foreground))',
+    'hsl(330 65% 50%)',
+    'hsl(190 80% 42%)',
+    'hsl(45 93% 47%)',
+    'hsl(0 0% 55%)',
   ];
 
   const expenseChartConfig = useMemo(() => {
     const config: ChartConfig = {};
     expenseByCategoryData.forEach((item, index) => {
-      config[item.name] = { 
+      config[item.name] = {
         label: item.category,
         color: chartColors[index % chartColors.length],
       };
@@ -55,26 +55,26 @@ const StatisticsPage: FC = () => {
 
   const totalIncome = useMemo(() => incomes.reduce((sum, i) => sum + i.amount, 0), [incomes]);
   const totalExpenses = useMemo(() => expenses.reduce((sum, e) => sum + e.amount, 0), [expenses]);
-  
+
   const incomeExpenseData = useMemo(() => [
     { type: 'Revenus', total: totalIncome, fill: 'hsl(var(--chart-1))' },
     { type: 'Dépenses', total: totalExpenses, fill: 'hsl(var(--chart-2))' },
   ], [totalIncome, totalExpenses]);
 
   const incomeExpenseChartConfig = useMemo(() => ({
-    total: { 
+    total: {
       label: CURRENCY_SYMBOL,
     },
-    Revenus: { 
+    Revenus: {
       label: 'Revenus',
       color: 'hsl(var(--chart-1))',
     },
-    Dépenses: { 
+    Dépenses: {
       label: 'Dépenses',
       color: 'hsl(var(--chart-2))',
     },
   } satisfies ChartConfig), []);
-  
+
   const trendsData = useMemo(() => {
     const dailyData: { [key: string]: { dateValue: Date, income: number, expenses: number } } = {};
 
@@ -96,7 +96,7 @@ const StatisticsPage: FC = () => {
         dailyData[dateKey].income += transaction.amount;
       }
     });
-    
+
     return Object.entries(dailyData)
       .map(([_, value]) => ({
         date: format(value.dateValue, 'dd MMM', { locale: fr }), // Format for X-axis display
@@ -105,7 +105,7 @@ const StatisticsPage: FC = () => {
         dateForSort: value.dateValue // Keep original date for sorting
       }))
       .sort((a, b) => a.dateForSort.getTime() - b.dateForSort.getTime())
-      .map(({date, Revenus, Dépenses}) => ({date, Revenus, Dépenses})); // Remove dateForSort after sorting
+      .map(({ date, Revenus, Dépenses }) => ({ date, Revenus, Dépenses })); // Remove dateForSort after sorting
 
   }, [expenses, incomes]);
 
@@ -123,114 +123,114 @@ const StatisticsPage: FC = () => {
 
   return (
     <ScrollArea className="h-full">
-    <div className="p-4 space-y-6 bg-background flex-grow">
-      <h1 className="text-2xl font-bold text-foreground mb-6">Statistiques et Analyses</h1>
+      <div className="p-4 space-y-6 bg-background pb-8 overflow-x-hidden">
+        <h1 className="text-xl font-bold text-foreground">Statistiques</h1>
 
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle className="flex items-center text-foreground"><PieChartIcon className="mr-2 h-5 w-5 text-primary"/>Répartition des Dépenses</CardTitle>
-          <CardDescription>Visualisez où va votre argent. ({CURRENCY_SYMBOL})</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {expenseByCategoryData.length > 0 ? (
-            <ChartContainer config={expenseChartConfig} className="mx-auto aspect-square max-h-[300px] sm:max-h-[350px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel nameKey="category" />}
-                  />
-                  <Pie
-                    data={expenseByCategoryData}
-                    dataKey="total"
-                    nameKey="category" 
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    innerRadius={50}
-                    labelLine={false}
-                  >
-                    {expenseByCategoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={expenseChartConfig[entry.name]?.color || chartColors[index % chartColors.length]} />
-                    ))}
-                  </Pie>
-                   <ChartLegend content={<ChartLegendContent nameKey="category" />} className="-translate-y-2 flex-wrap gap-2 [&>*]:basis-1/4 [&>*]:justify-center" />
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          ) : (
-            <p className="text-muted-foreground text-center py-10">Pas assez de données de dépenses pour afficher le graphique.</p>
-          )}
-        </CardContent>
-      </Card>
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center text-foreground"><PieChartIcon className="mr-2 h-5 w-5 text-primary" />Répartition des Dépenses</CardTitle>
+            <CardDescription>Visualisez où va votre argent. ({CURRENCY_SYMBOL})</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {expenseByCategoryData.length > 0 ? (
+              <ChartContainer config={expenseChartConfig} className="mx-auto aspect-square max-h-[280px] w-full min-w-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel nameKey="category" />}
+                    />
+                    <Pie
+                      data={expenseByCategoryData}
+                      dataKey="total"
+                      nameKey="category"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      innerRadius={50}
+                      labelLine={false}
+                    >
+                      {expenseByCategoryData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={expenseChartConfig[entry.name]?.color || chartColors[index % chartColors.length]} />
+                      ))}
+                    </Pie>
+                    <ChartLegend content={<ChartLegendContent nameKey="category" />} className="-translate-y-2 flex-wrap gap-1 text-xs [&>*]:basis-1/3 [&>*]:justify-center" />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <p className="text-muted-foreground text-center py-10">Pas assez de données de dépenses pour afficher le graphique.</p>
+            )}
+          </CardContent>
+        </Card>
 
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle className="flex items-center text-foreground"><BarChartIconLucide className="mr-2 h-5 w-5 text-primary"/>Revenus vs Dépenses</CardTitle>
-          <CardDescription>Comparez vos entrées et sorties d'argent. ({CURRENCY_SYMBOL})</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {(totalIncome > 0 || totalExpenses > 0) ? (
-            <ChartContainer config={incomeExpenseChartConfig} className="w-full h-[250px] sm:h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={incomeExpenseData} margin={{ top: 5, right: 0, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis 
-                    dataKey="type" 
-                    tickLine={false} 
-                    axisLine={false} 
-                    tickMargin={8} 
-                    tickFormatter={(value) => incomeExpenseChartConfig[value as keyof typeof incomeExpenseChartConfig]?.label || value}
-                  />
-                  <YAxis tickFormatter={(value) => `${value.toLocaleString('fr-FR')}`} stroke="#888888" fontSize={12} tickLine={false} axisLine={false}/>
-                  <ChartTooltip 
-                    cursor={false} 
-                    content={<ChartTooltipContent indicator="dot" nameKey="type" />} 
-                  />
-                  <ChartLegend content={<ChartLegendContent nameKey="type" />} />
-                  <Bar 
-                    dataKey="total" 
-                    radius={4}
-                  >
-                     {incomeExpenseData.map((entry) => (
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center text-foreground"><BarChartIconLucide className="mr-2 h-5 w-5 text-primary" />Revenus vs Dépenses</CardTitle>
+            <CardDescription>Comparez vos entrées et sorties d'argent. ({CURRENCY_SYMBOL})</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {(totalIncome > 0 || totalExpenses > 0) ? (
+              <ChartContainer config={incomeExpenseChartConfig} className="w-full h-[250px] min-w-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={incomeExpenseData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis
+                      dataKey="type"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      tickFormatter={(value) => incomeExpenseChartConfig[value as keyof typeof incomeExpenseChartConfig]?.label || value}
+                    />
+                    <YAxis tickFormatter={(value) => `${value.toLocaleString('fr-FR')}`} stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent indicator="dot" nameKey="type" />}
+                    />
+                    <ChartLegend content={<ChartLegendContent nameKey="type" />} />
+                    <Bar
+                      dataKey="total"
+                      radius={4}
+                    >
+                      {incomeExpenseData.map((entry) => (
                         <Cell key={entry.type} fill={entry.fill} />
                       ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          ) : (
-            <p className="text-muted-foreground text-center py-10">Pas assez de données pour afficher le graphique revenus vs dépenses.</p>
-          )}
-        </CardContent>
-      </Card>
-      
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle className="flex items-center text-foreground"><Activity className="mr-2 h-5 w-5 text-primary"/>Tendances Financières</CardTitle>
-          <CardDescription>Évolution de vos revenus et dépenses dans le temps. ({CURRENCY_SYMBOL})</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {trendsData.length > 0 ? (
-            <ChartContainer config={trendsChartConfig} className="w-full h-[250px] sm:h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trendsData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
-                  <YAxis tickFormatter={(value) => `${value.toLocaleString('fr-FR')}`} stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
-                  <ChartLegend content={<ChartLegendContent />} />
-                  <Line type="monotone" dataKey="Revenus" stroke={trendsChartConfig.Revenus.color} strokeWidth={2} dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="Dépenses" stroke={trendsChartConfig.Dépenses.color} strokeWidth={2} dot={{ r: 3 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          ) : (
-            <p className="text-muted-foreground text-center py-10">Pas assez de données pour afficher le graphique des tendances.</p>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <p className="text-muted-foreground text-center py-10">Pas assez de données pour afficher le graphique revenus vs dépenses.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center text-foreground"><Activity className="mr-2 h-5 w-5 text-primary" />Tendances Financières</CardTitle>
+            <CardDescription>Évolution de vos revenus et dépenses dans le temps. ({CURRENCY_SYMBOL})</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {trendsData.length > 0 ? (
+              <ChartContainer config={trendsChartConfig} className="w-full h-[250px] min-w-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendsData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
+                    <YAxis tickFormatter={(value) => `${value.toLocaleString('fr-FR')}`} stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                    <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
+                    <ChartLegend content={<ChartLegendContent />} />
+                    <Line type="monotone" dataKey="Revenus" stroke={trendsChartConfig.Revenus.color} strokeWidth={2} dot={{ r: 3 }} />
+                    <Line type="monotone" dataKey="Dépenses" stroke={trendsChartConfig.Dépenses.color} strokeWidth={2} dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <p className="text-muted-foreground text-center py-10">Pas assez de données pour afficher le graphique des tendances.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </ScrollArea>
   );
 };
