@@ -4,9 +4,8 @@
 import type { FC } from 'react';
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { BarChart as BarChartIconLucide, PieChart as PieChartIcon, Activity } from 'lucide-react'; // Renamed to avoid conflict
+import { BarChart as BarChartIconLucide, PieChart as PieChartIcon, Activity } from 'lucide-react';
 import { useAppContext } from '@/contexts/AppContext';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from '@/components/ui/chart';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, XAxis, YAxis, Bar, CartesianGrid, LineChart, Line } from 'recharts';
 import { EXPENSE_CATEGORIES, CURRENCY_SYMBOL } from '@/lib/cashruler/constants';
@@ -122,8 +121,8 @@ const StatisticsPage: FC = () => {
 
 
   return (
-    <ScrollArea className="h-full">
-      <div className="p-4 space-y-6 bg-background pb-8 overflow-x-hidden">
+    <div className="h-full overflow-y-auto overflow-x-hidden w-full">
+      <div className="p-4 space-y-6 bg-background pb-8 w-full">
         <h1 className="text-xl font-bold text-foreground">Statistiques</h1>
 
         <Card className="shadow-md overflow-hidden">
@@ -231,7 +230,7 @@ const StatisticsPage: FC = () => {
           </CardContent>
         </Card>
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 
