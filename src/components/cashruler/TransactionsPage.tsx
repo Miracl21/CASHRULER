@@ -23,7 +23,7 @@ const TransactionsPage: FC = () => {
   const [editingIncome, setEditingIncome] = useState<Income | undefined>(undefined);
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<{id: string, type: TransactionType} | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string, type: TransactionType } | null>(null);
 
 
   const sortedExpenses = useMemo(() => [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [expenses]);
@@ -43,7 +43,7 @@ const TransactionsPage: FC = () => {
     setItemToDelete({ id, type });
     setDialogOpen(true);
   };
-  
+
   const confirmDelete = () => {
     if (itemToDelete) {
       if (itemToDelete.type === 'expense') {
@@ -59,14 +59,14 @@ const TransactionsPage: FC = () => {
 
   return (
     <div className="p-4 flex flex-col h-full bg-background">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold text-foreground">Transactions</h1>
-        <div className="space-x-2">
-          <Button onClick={() => { setEditingExpense(undefined); setIsExpenseFormOpen(true); }} className="shadow-sm">
-            <PlusCircle className="mr-2 h-4 w-4" /> Dépense
+      <div className="space-y-3 mb-4">
+        <h1 className="text-xl font-bold text-foreground">Transactions</h1>
+        <div className="flex gap-2">
+          <Button onClick={() => { setEditingExpense(undefined); setIsExpenseFormOpen(true); }} className="shadow-sm flex-1" size="sm">
+            <PlusCircle className="mr-1.5 h-4 w-4" /> Dépense
           </Button>
-          <Button onClick={() => { setEditingIncome(undefined); setIsIncomeFormOpen(true); }} variant="secondary" className="shadow-sm">
-            <PlusCircle className="mr-2 h-4 w-4" /> Revenu
+          <Button onClick={() => { setEditingIncome(undefined); setIsIncomeFormOpen(true); }} variant="secondary" className="shadow-sm flex-1" size="sm">
+            <PlusCircle className="mr-1.5 h-4 w-4" /> Revenu
           </Button>
         </div>
       </div>
@@ -82,9 +82,9 @@ const TransactionsPage: FC = () => {
               <p className="text-muted-foreground text-center py-10">Aucune dépense enregistrée.</p>
             ) : (
               sortedExpenses.map(exp => (
-                <TransactionItem 
-                  key={exp.id} 
-                  transaction={exp} 
+                <TransactionItem
+                  key={exp.id}
+                  transaction={exp}
                   onEdit={() => handleEditExpense(exp)}
                   onDelete={() => handleDeleteRequest(exp.id, 'expense')}
                 />
@@ -98,9 +98,9 @@ const TransactionsPage: FC = () => {
               <p className="text-muted-foreground text-center py-10">Aucun revenu enregistré.</p>
             ) : (
               sortedIncomes.map(inc => (
-                <TransactionItem 
-                  key={inc.id} 
-                  transaction={inc} 
+                <TransactionItem
+                  key={inc.id}
+                  transaction={inc}
                   onEdit={() => handleEditIncome(inc)}
                   onDelete={() => handleDeleteRequest(inc.id, 'income')}
                 />
@@ -110,21 +110,21 @@ const TransactionsPage: FC = () => {
         </TabsContent>
       </Tabs>
 
-      <ExpenseForm 
-        isOpen={isExpenseFormOpen} 
+      <ExpenseForm
+        isOpen={isExpenseFormOpen}
         onOpenChange={(isOpen) => {
           setIsExpenseFormOpen(isOpen);
           if (!isOpen) setEditingExpense(undefined);
-        }} 
-        expenseToEdit={editingExpense} 
+        }}
+        expenseToEdit={editingExpense}
       />
-      <IncomeForm 
-        isOpen={isIncomeFormOpen} 
+      <IncomeForm
+        isOpen={isIncomeFormOpen}
         onOpenChange={(isOpen) => {
           setIsIncomeFormOpen(isOpen);
           if (!isOpen) setEditingIncome(undefined);
-        }} 
-        incomeToEdit={editingIncome} 
+        }}
+        incomeToEdit={editingIncome}
       />
 
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>

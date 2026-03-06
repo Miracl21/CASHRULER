@@ -33,18 +33,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className="h-full">
+    <html lang="fr">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#388E3C" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png"></link>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-full bg-background`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background`}>
         <AuthProvider>
           <AppProvider>
-            <div className="flex flex-col items-center min-h-full">
-              <div className="w-full max-w-lg h-full flex flex-col shadow-xl overflow-x-hidden">
+            <div className="flex flex-col items-center min-h-dvh">
+              <div className="w-full max-w-lg min-h-dvh flex flex-col shadow-xl overflow-x-hidden">
                 {children}
               </div>
             </div>

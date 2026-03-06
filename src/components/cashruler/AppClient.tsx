@@ -4,6 +4,7 @@
 import type { FC } from 'react';
 import { useState } from 'react';
 import BottomNavigationBar from './BottomNavigationBar';
+import PWAInstallPrompt from './PWAInstallPrompt';
 import DashboardPage from './DashboardPage';
 import TransactionsPage from './TransactionsPage';
 import ComptesPage from './ComptesPage';
@@ -35,10 +36,11 @@ const AppClient: FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background">
-      <main className="flex-grow overflow-y-auto">
+    <div className="flex flex-col h-dvh bg-background">
+      <main className="flex-1 overflow-y-auto min-h-0">
         {renderContent()}
       </main>
+      <PWAInstallPrompt />
       <BottomNavigationBar activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );

@@ -97,6 +97,13 @@
   }
   body {
     @apply bg-background text-foreground;
-    /* Font is handled by layout.tsx with Geist Sans */
+    overscroll-behavior-y: contain;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  
+  /* Allow text selection in inputs and textareas */
+  input, textarea, [contenteditable] {
+    user-select: text;
   }
 }

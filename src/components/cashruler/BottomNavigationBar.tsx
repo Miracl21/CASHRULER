@@ -12,8 +12,8 @@ interface BottomNavigationBarProps {
 
 const BottomNavigationBar: FC<BottomNavigationBarProps> = ({ activeTab, onTabChange }) => {
   return (
-    <nav className="bg-card border-t border-border shadow-md">
-      <div className="flex justify-around items-center h-16">
+    <nav className="bg-card border-t border-border shadow-md flex-shrink-0">
+      <div className="flex justify-around items-center h-14 pb-[env(safe-area-inset-bottom)]">
         {NAVIGATION_TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

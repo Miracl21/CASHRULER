@@ -43,12 +43,12 @@ const SettingsPage: FC = () => {
 
   return (
     <ScrollArea className="h-full">
-      <div className="p-4 space-y-8 bg-background flex-grow">
+      <div className="p-4 space-y-8 bg-background pb-8">
         <h1 className="text-2xl font-bold text-foreground">Paramètres</h1>
 
         <Card className="shadow-md">
           <CardHeader>
-            <CardTitle className="flex items-center text-foreground"><User className="mr-2 h-5 w-5 text-primary"/>Personnalisation</CardTitle>
+            <CardTitle className="flex items-center text-foreground"><User className="mr-2 h-5 w-5 text-primary" />Personnalisation</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -65,7 +65,7 @@ const SettingsPage: FC = () => {
 
         <Card className="shadow-md">
           <CardHeader>
-            <CardTitle className="flex items-center text-foreground"><Bell className="mr-2 h-5 w-5 text-primary"/>Notifications</CardTitle>
+            <CardTitle className="flex items-center text-foreground"><Bell className="mr-2 h-5 w-5 text-primary" />Notifications</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-3 rounded-md border">
@@ -92,24 +92,24 @@ const SettingsPage: FC = () => {
             </div>
           </CardContent>
         </Card>
-        
-        <div className="flex justify-end">
-            <Button onClick={handleSaveSettings} className="shadow-sm">
-              <Save className="mr-2 h-4 w-4"/>Enregistrer les Paramètres
-            </Button>
+
+        <div>
+          <Button onClick={handleSaveSettings} className="shadow-sm w-full">
+            <Save className="mr-2 h-4 w-4" />Enregistrer
+          </Button>
         </div>
 
 
         <Card className="shadow-md border-destructive">
           <CardHeader>
-            <CardTitle className="flex items-center text-destructive"><Trash2 className="mr-2 h-5 w-5"/>Gestion des Données</CardTitle>
+            <CardTitle className="flex items-center text-destructive"><Trash2 className="mr-2 h-5 w-5" />Gestion des Données</CardTitle>
             <CardDescription className="text-destructive/80">Attention, ces actions sont irréversibles.</CardDescription>
           </CardHeader>
           <CardContent>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="w-full shadow-sm">
-                  Réinitialiser Toutes les Données de l'Application
+                <Button variant="destructive" className="w-full shadow-sm text-sm">
+                  Réinitialiser toutes les données
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -117,7 +117,7 @@ const SettingsPage: FC = () => {
                   <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
                   <AlertDialogDescription>
                     Cette action ne peut pas être annulée. Cela effacera définitivement toutes vos données CASHRULER (caisses, transactions, budgets, objectifs, etc.).
-                    <br/><br/>
+                    <br /><br />
                     Pour confirmer, veuillez taper "<strong>EFFACER</strong>" dans le champ ci-dessous.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -135,7 +135,7 @@ const SettingsPage: FC = () => {
                       if (resetConfirmText === "EFFACER") {
                         handleResetData();
                       } else {
-                        toast({ title: "Confirmation incorrecte", description: "La réinitialisation n'a pas été effectuée.", variant: "destructive"});
+                        toast({ title: "Confirmation incorrecte", description: "La réinitialisation n'a pas été effectuée.", variant: "destructive" });
                       }
                       setResetConfirmText('');
                     }}
@@ -156,4 +156,3 @@ const SettingsPage: FC = () => {
 
 export default SettingsPage;
 
-    
