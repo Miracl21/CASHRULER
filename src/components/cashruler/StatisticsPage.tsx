@@ -132,8 +132,8 @@ const StatisticsPage: FC = () => {
           </CardHeader>
           <CardContent>
             {expenseByCategoryData.length > 0 ? (
-              <ChartContainer config={expenseChartConfig} className="mx-auto max-h-[300px] w-full">
-                <ResponsiveContainer width="100%" height={300}>
+              <ChartContainer config={expenseChartConfig} className="mx-auto w-full" style={{ height: 280 }}>
+                <ResponsiveContainer width="100%" height={280}>
                   <PieChart>
                     <ChartTooltip
                       cursor={false}
@@ -145,8 +145,8 @@ const StatisticsPage: FC = () => {
                       nameKey="category"
                       cx="50%"
                       cy="45%"
-                      outerRadius="32%"
-                      innerRadius="16%"
+                      outerRadius={95}
+                      innerRadius={50}
                       labelLine={false}
                     >
                       {expenseByCategoryData.map((entry, index) => (
