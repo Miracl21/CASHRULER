@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 125 50% 94%; /* Light desaturated green #E8F5E9 */
+    --foreground: 120 25% 15%; /* Dark green-gray for text */
+
+    --card: 125 50% 98%;
+    --card-foreground: 120 25% 15%;
+
+    --popover: 125 50% 98%;
+    --popover-foreground: 120 25% 15%;
+
+    --primary: 123 40% 38%; /* Forest Green #388E3C */
+    --primary-foreground: 120 100% 98%; /* Very light green/white */
+
+    --secondary: 100 45% 55%; /* A slightly different green */
+    --secondary-foreground: 120 25% 15%;
+
+    --muted: 125 40% 88%;
+    --muted-foreground: 120 20% 35%;
+
+    --accent: 88 50% 59%; /* Yellow-Green #8BC34A */
+    --accent-foreground: 120 25% 15%; /* Dark text on accent */
+
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 123 30% 70%;
+    --input: 123 30% 85%; /* Lighter input background for better contrast on light green */
+    --ring: 123 40% 38%; /* Primary color for focus rings */
+
+    --radius: 0.5rem;
+
+    /* Sidebar specific colors (may not be heavily used in this mobile-first design but good to theme) */
+    --sidebar-background: 123 35% 30%;
+    --sidebar-foreground: 120 30% 90%;
+    --sidebar-primary: 88 50% 59%;
+    --sidebar-primary-foreground: 120 25% 15%;
+    --sidebar-accent: 123 40% 45%;
+    --sidebar-accent-foreground: 120 30% 95%;
+    --sidebar-border: 123 35% 40%;
+    --sidebar-ring: 88 50% 59%;
+
+    /* Chart colors */
+    --chart-1: 123 40% 38%; /* Primary */
+    --chart-2: 88 50% 59%;  /* Accent */
+    --chart-3: 100 45% 55%; /* Secondary */
+    --chart-4: 123 40% 60%; /* Lighter Primary */
+    --chart-5: 88 50% 75%;  /* Lighter Accent */
+  }
+
+  .dark {
+    /* Define dark theme variables if needed in the future, for now, focus on light theme */
+    --background: 120 25% 10%;
+    --foreground: 125 50% 94%;
+
+    --card: 120 25% 12%;
+    --card-foreground: 125 50% 94%;
+
+    --popover: 120 25% 12%;
+    --popover-foreground: 125 50% 94%;
+
+    --primary: 123 40% 45%;
+    --primary-foreground: 120 25% 10%;
+
+    --secondary: 100 45% 40%;
+    --secondary-foreground: 125 50% 94%;
+
+    --muted: 125 20% 20%;
+    --muted-foreground: 125 40% 70%;
+
+    --accent: 88 50% 50%;
+    --accent-foreground: 120 25% 10%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 123 30% 30%;
+    --input: 123 30% 25%;
+    --ring: 123 40% 45%;
+
+    /* Chart colors dark */
+    --chart-1: 123 40% 45%;
+    --chart-2: 88 50% 50%;
+    --chart-3: 100 45% 40%;
+    --chart-4: 123 40% 30%;
+    --chart-5: 88 50% 35%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    /* Font is handled by layout.tsx with Geist Sans */
+  }
+}
