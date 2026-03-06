@@ -22,8 +22,8 @@ export const metadata: Metadata = {
   description: 'Gérez vos finances personnelles simplement.',
   manifest: '/manifest.json', // Ajout du manifest pour PWA
   icons: [
-    { rel: 'apple-touch-icon', url: 'https://placehold.co/192x192.png' },
-    { rel: 'icon', url: 'https://placehold.co/192x192.png' },
+    { rel: 'apple-touch-icon', url: '/icons/icon-192.png' },
+    { rel: 'icon', url: '/icons/icon-192.png' },
   ],
 };
 
@@ -38,13 +38,13 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#388E3C" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="https://placehold.co/192x192.png" data-ai-hint="app icon"></link>
+        <link rel="apple-touch-icon" href="/icons/icon-192.png"></link>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-full bg-background`}>
         <AuthProvider>
           <AppProvider>
             <div className="flex flex-col items-center min-h-full">
-              <div className="w-full max-w-md h-full flex flex-col shadow-xl overflow-hidden">
+              <div className="w-full max-w-lg h-full flex flex-col shadow-xl overflow-x-hidden">
                 {children}
               </div>
             </div>

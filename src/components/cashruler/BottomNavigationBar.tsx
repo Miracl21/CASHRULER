@@ -22,13 +22,13 @@ const BottomNavigationBar: FC<BottomNavigationBarProps> = ({ activeTab, onTabCha
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "flex flex-col items-center justify-center p-2 rounded-lg transition-colors duration-200 w-1/4",
+                "flex flex-col items-center justify-center p-1.5 rounded-lg transition-colors duration-200 flex-1 min-w-0",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
               aria-current={isActive ? "page" : undefined}
             >
-              <Icon className={cn("h-6 w-6 mb-1", isActive ? "text-primary" : "")} />
-              <span className={cn("text-xs font-medium", isActive ? "text-primary" : "")}>{tab.label}</span>
+              <Icon className={cn("h-5 w-5 mb-0.5", isActive ? "text-primary" : "")} />
+              <span className={cn("text-[10px] font-medium truncate w-full text-center", isActive ? "text-primary" : "")}>{tab.label}</span>
             </button>
           );
         })}

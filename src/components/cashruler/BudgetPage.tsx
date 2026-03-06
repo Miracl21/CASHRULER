@@ -36,9 +36,9 @@ const BudgetPage: FC = () => {
     }).map(date => format(date, 'yyyy-MM')).reverse();
     setAvailableMonths(months);
     if (!getMonthlyBudget(selectedMonthYear) && format(today, 'yyyy-MM') !== selectedMonthYear) {
-        if (getMonthlyBudget(format(today, 'yyyy-MM'))) {
-            setSelectedMonthYear(format(today, 'yyyy-MM'));
-        }
+      if (getMonthlyBudget(format(today, 'yyyy-MM'))) {
+        setSelectedMonthYear(format(today, 'yyyy-MM'));
+      }
     }
   }, [getMonthlyBudget, selectedMonthYear]); // Added selectedMonthYear as dependency
 
@@ -63,18 +63,18 @@ const BudgetPage: FC = () => {
 
   let daysToConsiderForSuggestion = 0;
   if (currentDate && selectedMonthYear) {
-      const [year, monthVal] = selectedMonthYear.split('-').map(Number);
-      const startOfSelectedMonth = startOfMonth(new Date(year, monthVal - 1, 1));
-      const endOfSelectedMonth = endOfMonth(new Date(year, monthVal - 1, 1));
+    const [year, monthVal] = selectedMonthYear.split('-').map(Number);
+    const startOfSelectedMonth = startOfMonth(new Date(year, monthVal - 1, 1));
+    const endOfSelectedMonth = endOfMonth(new Date(year, monthVal - 1, 1));
 
-      if (format(currentDate, 'yyyy-MM') === selectedMonthYear) {
-          daysToConsiderForSuggestion = differenceInDays(endOfSelectedMonth, currentDate) + 1;
-      } else if (isBefore(startOfSelectedMonth, startOfMonth(currentDate))) {
-          daysToConsiderForSuggestion = 0; 
-      } else { 
-          daysToConsiderForSuggestion = differenceInDays(endOfSelectedMonth, startOfSelectedMonth) + 1;
-      }
-      daysToConsiderForSuggestion = Math.max(0, daysToConsiderForSuggestion);
+    if (format(currentDate, 'yyyy-MM') === selectedMonthYear) {
+      daysToConsiderForSuggestion = differenceInDays(endOfSelectedMonth, currentDate) + 1;
+    } else if (isBefore(startOfSelectedMonth, startOfMonth(currentDate))) {
+      daysToConsiderForSuggestion = 0;
+    } else {
+      daysToConsiderForSuggestion = differenceInDays(endOfSelectedMonth, startOfSelectedMonth) + 1;
+    }
+    daysToConsiderForSuggestion = Math.max(0, daysToConsiderForSuggestion);
   }
 
 
@@ -92,11 +92,11 @@ const BudgetPage: FC = () => {
   return (
     <ScrollArea className="h-full">
       <div className="p-4 flex flex-col bg-background space-y-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 sm:mb-0">
-          <h1 className="text-2xl font-bold text-foreground mb-2 sm:mb-0 flex items-center"><Scale className="mr-3 h-7 w-7 text-primary"/>Budget du Compte Courant</h1>
-          <div className="flex items-center space-x-2 w-full sm:w-auto">
+        <div className="space-y-3">
+          <h1 className="text-xl font-bold text-foreground flex items-center"><Scale className="mr-2 h-6 w-6 text-primary flex-shrink-0" />Budget du Compte Courant</h1>
+          <div className="flex items-center gap-2">
             <Select value={selectedMonthYear} onValueChange={setSelectedMonthYear}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="flex-1 min-w-0">
                 <SelectValue placeholder="Sélectionner un mois" />
               </SelectTrigger>
               <SelectContent>
@@ -107,8 +107,8 @@ const BudgetPage: FC = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={() => handleOpenMonthlyBudgetForm(activeMonthlyBudget)} className="shadow-sm whitespace-nowrap">
-              <PlusCircle className="mr-2 h-4 w-4" /> {activeMonthlyBudget ? 'Modifier Budget' : 'Créer Budget'}
+            <Button onClick={() => handleOpenMonthlyBudgetForm(activeMonthlyBudget)} className="shadow-sm whitespace-nowrap flex-shrink-0" size="sm">
+              <PlusCircle className="mr-1.5 h-4 w-4" /> {activeMonthlyBudget ? 'Modifier' : 'Créer'}
             </Button>
           </div>
         </div>
@@ -143,40 +143,40 @@ const BudgetPage: FC = () => {
                     let suggestionColor = "text-muted-foreground";
 
                     if (daysToConsiderForSuggestion > 0) {
-                        if (remainingBudgetForCategory > 0) {
-                            const dailySuggestionAmount = remainingBudgetForCategory / daysToConsiderForSuggestion;
-                            dailySuggestionText = `~${dailySuggestionAmount.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} ${CURRENCY_SYMBOL}/jour suggéré`;
-                            suggestionColor = "text-green-600";
-                        } else {
-                            dailySuggestionText = `Budget catégorie atteint ou dépassé`;
-                            if(isOverBudgetCategory) suggestionColor = "text-destructive";
-                        }
+                      if (remainingBudgetForCategory > 0) {
+                        const dailySuggestionAmount = remainingBudgetForCategory / daysToConsiderForSuggestion;
+                        dailySuggestionText = `~${dailySuggestionAmount.toLocaleString('fr-FR', { maximumFractionDigits: 0 })} ${CURRENCY_SYMBOL}/jour suggéré`;
+                        suggestionColor = "text-green-600";
+                      } else {
+                        dailySuggestionText = `Budget catégorie atteint ou dépassé`;
+                        if (isOverBudgetCategory) suggestionColor = "text-destructive";
+                      }
                     } else {
-                        if (remainingBudgetForCategory > 0) {
-                            dailySuggestionText = `Budget non dépassé. Mois terminé.`;
-                        } else if (remainingBudgetForCategory < 0) {
-                            dailySuggestionText = `Budget dépassé. Mois terminé.`;
-                            suggestionColor = "text-destructive";
-                        } else {
-                            dailySuggestionText = `Budget respecté. Mois terminé.`;
-                        }
+                      if (remainingBudgetForCategory > 0) {
+                        dailySuggestionText = `Budget non dépassé. Mois terminé.`;
+                      } else if (remainingBudgetForCategory < 0) {
+                        dailySuggestionText = `Budget dépassé. Mois terminé.`;
+                        suggestionColor = "text-destructive";
+                      } else {
+                        dailySuggestionText = `Budget respecté. Mois terminé.`;
+                      }
                     }
 
                     return (
                       <div key={alloc.id} className="p-3 rounded-md border bg-card/80 mb-2.5 shadow-sm">
-                         <div className="flex items-center justify-between mb-1.5">
-                            <div className="flex items-center">
-                              {categoryInfo && <CategoryIconMapper categoryName={alloc.category} type="expense" className="h-5 w-5 mr-2.5 text-primary" />}
-                              <span className="font-semibold text-md text-foreground">{categoryInfo?.label || alloc.category}</span>
-                            </div>
-                             <span className={`text-sm font-medium ${isOverBudgetCategory ? 'text-destructive' : 'text-foreground'}`}>
-                              {spentThisMonthForCategory.toLocaleString('fr-FR')} / {alloc.allocatedAmount.toLocaleString('fr-FR')} {CURRENCY_SYMBOL}
-                            </span>
-                         </div>
-                         <Progress value={progress} className={`h-2 mb-1.5 ${isOverBudgetCategory ? '[&>*]:bg-destructive' : '[&>*]:bg-primary'}`} />
-                         <p className={`text-xs italic ${suggestionColor} flex items-center`}>
-                           <Info className="h-3.5 w-3.5 mr-1.5"/> {dailySuggestionText}
-                         </p>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center">
+                            {categoryInfo && <CategoryIconMapper categoryName={alloc.category} type="expense" className="h-5 w-5 mr-2.5 text-primary" />}
+                            <span className="font-semibold text-md text-foreground">{categoryInfo?.label || alloc.category}</span>
+                          </div>
+                          <span className={`text-sm font-medium ${isOverBudgetCategory ? 'text-destructive' : 'text-foreground'}`}>
+                            {spentThisMonthForCategory.toLocaleString('fr-FR')} / {alloc.allocatedAmount.toLocaleString('fr-FR')} {CURRENCY_SYMBOL}
+                          </span>
+                        </div>
+                        <Progress value={progress} className={`h-2 mb-1.5 ${isOverBudgetCategory ? '[&>*]:bg-destructive' : '[&>*]:bg-primary'}`} />
+                        <p className={`text-xs italic ${suggestionColor} flex items-center`}>
+                          <Info className="h-3.5 w-3.5 mr-1.5" /> {dailySuggestionText}
+                        </p>
                       </div>
                     );
                   })
@@ -186,7 +186,7 @@ const BudgetPage: FC = () => {
               </div>
 
               <div>
-                <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center"><PiggyBank className="mr-2 h-4 w-4 text-green-600"/>Objectif d'Allocations aux Autres Comptes:</h3>
+                <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center"><PiggyBank className="mr-2 h-4 w-4 text-green-600" />Objectif d'Allocations aux Autres Comptes:</h3>
                 <p className="text-lg font-bold text-green-600 mb-3">{(activeMonthlyBudget.targetSavingsAmount || 0).toLocaleString('fr-FR')} {CURRENCY_SYMBOL}</p>
 
                 {activeMonthlyBudget.savingsAllocations && activeMonthlyBudget.savingsAllocations.length > 0 && (
@@ -209,11 +209,11 @@ const BudgetPage: FC = () => {
                     </ul>
                   </>
                 )}
-                 {(!activeMonthlyBudget.savingsAllocations || activeMonthlyBudget.savingsAllocations.length === 0) && activeMonthlyBudget.targetSavingsAmount > 0 && (
-                    <p className="text-xs text-muted-foreground italic">Aucune allocation spécifique vers d'autres comptes n'a été faite pour cet objectif.</p>
+                {(!activeMonthlyBudget.savingsAllocations || activeMonthlyBudget.savingsAllocations.length === 0) && activeMonthlyBudget.targetSavingsAmount > 0 && (
+                  <p className="text-xs text-muted-foreground italic">Aucune allocation spécifique vers d'autres comptes n'a été faite pour cet objectif.</p>
                 )}
                 {(activeMonthlyBudget.targetSavingsAmount || 0) === 0 && (
-                     <p className="text-xs text-muted-foreground italic">Aucun objectif d'allocation vers d'autres comptes défini pour ce mois.</p>
+                  <p className="text-xs text-muted-foreground italic">Aucun objectif d'allocation vers d'autres comptes défini pour ce mois.</p>
                 )}
               </div>
             </CardContent>
