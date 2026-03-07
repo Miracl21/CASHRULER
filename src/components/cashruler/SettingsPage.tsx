@@ -11,12 +11,14 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { User, Bell, Trash2, Save, LogOut } from 'lucide-react';
+import { User, Bell, Trash2, Save, LogOut, Moon, Sun } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useTheme } from 'next-themes';
 
 const SettingsPage: FC = () => {
   const { userSettings, updateUserSettings, resetApplicationData } = useAppContext();
   const { signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [username, setUsername] = useState(userSettings.username || '');
   const [enableBudgetNotifications, setEnableBudgetNotifications] = useState(userSettings.enableBudgetNotifications);
   const [enableMotivationalMessages, setEnableMotivationalMessages] = useState(userSettings.enableMotivationalMessages);
@@ -65,6 +67,28 @@ const SettingsPage: FC = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Entrez votre nom ou pseudo"
                 className="bg-muted/50 border-0 focus-visible:ring-primary/30"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* ── Apparence ── */}
+        <Card className="glass-card border-0 animate-slide-up" style={{ animationDelay: '0.07s', animationFillMode: 'both' }}>
+          <CardContent className="pt-5">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 transition-colors hover:bg-muted/50">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  {theme === 'dark' ? <Moon className="h-4 w-4 text-primary" /> : <Sun className="h-4 w-4 text-primary" />}
+                </div>
+                <Label htmlFor="dark-mode" className="cursor-pointer">
+                  <span className="text-sm font-medium text-foreground">Mode sombre</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">Thème adapté aux conditions de faible luminosité</p>
+                </Label>
+              </div>
+              <Switch
+                id="dark-mode"
+                checked={theme === 'dark'}
+                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
               />
             </div>
           </CardContent>

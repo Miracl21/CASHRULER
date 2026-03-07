@@ -5,12 +5,12 @@ import { useState, useMemo } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import TransactionItem from './TransactionItem';
 import type { Expense, Income, Transfer } from '@/lib/cashruler/types';
-import { PlusCircle, ArrowRightLeft } from 'lucide-react';
+import { PlusCircle, ArrowRightLeft, Search, X } from 'lucide-react';
 import ExpenseForm from './ExpenseForm';
 import IncomeForm from './IncomeForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { CURRENCY_SYMBOL } from '@/lib/cashruler/constants';
+import { CURRENCY_SYMBOL, EXPENSE_CATEGORIES } from '@/lib/cashruler/constants';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -24,10 +24,38 @@ const TransactionsPage: FC = () => {
   const [editingIncome, setEditingIncome] = useState<Income | undefined>(undefined);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string, type: TransactionType } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
-  const sortedExpenses = useMemo(() => [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [expenses]);
-  const sortedIncomes = useMemo(() => [...incomes].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [incomes]);
-  const sortedTransfers = useMemo(() => [...transfers].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [transfers]);
+  const sortedExpenses = useMemo(() => {
+    let filtered = [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(exp => exp.title.toLowerCase().includes(q) || exp.note?.toLowerCase().includes(q) || exp.category?.toLowerCase().includes(q));
+    }
+    if (categoryFilter !== 'all') {
+      filtered = filtered.filter(exp => exp.category === categoryFilter);
+    }
+    return filtered;
+  }, [expenses, searchQuery, categoryFilter]);
+
+  const sortedIncomes = useMemo(() => {
+    let filtered = [...incomes].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(inc => inc.name.toLowerCase().includes(q) || inc.note?.toLowerCase().includes(q) || inc.type.toLowerCase().includes(q));
+    }
+    return filtered;
+  }, [incomes, searchQuery]);
+
+  const sortedTransfers = useMemo(() => {
+    let filtered = [...transfers].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(t => getCompteName(t.fromCompteId).toLowerCase().includes(q) || getCompteName(t.toCompteId).toLowerCase().includes(q) || t.note?.toLowerCase().includes(q));
+    }
+    return filtered;
+  }, [transfers, searchQuery, comptes]);
 
   const getCompteName = (id: string): string => {
     const compte = comptes.find(c => c.id === id);
@@ -83,6 +111,35 @@ const TransactionsPage: FC = () => {
             Transferts ({sortedTransfers.length})
           </TabsTrigger>
         </TabsList>
+
+        {/* Search & Filter */}
+        <div className="flex gap-2 mt-3 animate-slide-up" style={{ animationDelay: '0.05s', animationFillMode: 'both' }}>
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-9 pl-9 pr-8 rounded-xl bg-muted/50 border-0 text-sm placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-9 px-2 rounded-xl bg-muted/50 border-0 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 max-w-[120px]"
+          >
+            <option value="all">Toutes</option>
+            {EXPENSE_CATEGORIES.map(cat => (
+              <option key={cat.name} value={cat.name}>{cat.label}</option>
+            ))}
+          </select>
+        </div>
 
         <TabsContent value="expenses" className="flex-grow mt-3 overflow-y-auto">
           {sortedExpenses.length === 0 ? (

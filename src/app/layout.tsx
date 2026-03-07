@@ -1,21 +1,13 @@
 
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AppProvider } from '@/contexts/AppContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from 'next-themes';
 import Script from 'next/script';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
 
 export const metadata: Metadata = {
   title: 'CASHRULER Mobile',
@@ -33,24 +25,26 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
+    <html lang="fr" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="theme-color" content="#388E3C" />
+        <meta name="theme-color" content="#0D9668" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icons/icon-192.png"></link>
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background`}>
-        <AuthProvider>
-          <AppProvider>
-            <div className="flex flex-col items-center min-h-dvh">
-              <div className="w-full max-w-lg min-h-dvh flex flex-col shadow-xl overflow-x-hidden">
-                {children}
+      <body className="antialiased bg-background">
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <AuthProvider>
+            <AppProvider>
+              <div className="flex flex-col items-center min-h-dvh">
+                <div className="w-full max-w-lg min-h-dvh flex flex-col shadow-xl overflow-x-hidden">
+                  {children}
+                </div>
               </div>
-            </div>
-            <Toaster />
-          </AppProvider>
-        </AuthProvider>
+              <Toaster />
+            </AppProvider>
+          </AuthProvider>
+        </ThemeProvider>
         <Script id="service-worker-registration" strategy="afterInteractive">
           {`
             if ('serviceWorker' in navigator) {

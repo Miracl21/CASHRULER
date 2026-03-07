@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { PlusCircle, DollarSign, Edit2, Trash2, ShieldAlert, ShieldCheck, Send, PiggyBank, TrendingUp, TrendingDown } from 'lucide-react';
+import { PlusCircle, DollarSign, Edit2, Trash2, ShieldAlert, ShieldCheck, Send, PiggyBank, TrendingUp, TrendingDown, Sparkles } from 'lucide-react';
 import ExpenseForm from './ExpenseForm';
 import IncomeForm from './IncomeForm';
 import TransferForm from './TransferForm';
@@ -54,6 +54,44 @@ const DashboardPage: FC = () => {
     if (isAppContextLoading) return 0;
     return getCompteBalance(PREDEFINED_COMPTE_COURANT_ID);
   }, [getCompteBalance, isAppContextLoading, comptes]);
+
+  // ── Motivational Messages ──
+  const motivationalMessage = useMemo(() => {
+    if (!currentDate || isAppContextLoading || !userSettings.enableMotivationalMessages) return null;
+
+    const messages: string[] = [];
+
+    if (totalExpensesTodayFromCompteCourant === 0) {
+      messages.push("🌟 Aucune dépense aujourd'hui — excellente discipline !");
+    }
+    if (compteCourantBalance > 0 && totalExpensesTodayFromCompteCourant < compteCourantBalance * 0.01) {
+      messages.push("💰 Vous gérez bien votre argent. Continuez !");
+    }
+
+    const allLimitsRespected = expenseLimits.length > 0 && expenseLimits.every(limit => {
+      const spent = expensesTodayFromCompteCourant
+        .filter(exp => exp.category === limit.category)
+        .reduce((sum, exp) => sum + exp.amount, 0);
+      return spent <= limit.dailyAmount;
+    });
+    if (allLimitsRespected && expenseLimits.length > 0) {
+      messages.push("✅ Toutes vos limites sont respectées. Bravo !");
+    }
+
+    const generalMessages = [
+      "🚀 Chaque franc épargné est un pas vers vos objectifs.",
+      "🎯 La constance bat l'intensité — gardez le cap !",
+      "💪 Votre avenir financier se construit aujourd'hui.",
+      "🌱 Petites économies + temps = grande richesse.",
+    ];
+
+    if (messages.length === 0) {
+      const dayIndex = currentDate.getDate() % generalMessages.length;
+      return generalMessages[dayIndex];
+    }
+
+    return messages[0];
+  }, [currentDate, isAppContextLoading, userSettings.enableMotivationalMessages, totalExpensesTodayFromCompteCourant, compteCourantBalance, expenseLimits, expensesTodayFromCompteCourant]);
 
 
   if (isAppContextLoading || !currentDate) {
@@ -133,6 +171,14 @@ const DashboardPage: FC = () => {
               {totalExpensesTodayFromCompteCourant.toLocaleString('fr-FR')} {CURRENCY_SYMBOL}
             </span>
           </div>
+
+          {/* Motivational Message */}
+          {motivationalMessage && (
+            <div className="mt-3 pt-2.5 border-t border-white/15 flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5 text-yellow-300 flex-shrink-0" />
+              <p className="text-[11px] text-white/75 font-medium">{motivationalMessage}</p>
+            </div>
+          )}
         </div>
 
         {/* ── Quick Actions ── */}
@@ -293,7 +339,7 @@ const DashboardPage: FC = () => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </div>
+    </div >
   );
 };
 
