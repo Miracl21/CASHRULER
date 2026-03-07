@@ -1,0 +1,8 @@
+{
+    "name": "CASHRULER",
+    "integrations": {
+        "capacitor": {}
+    },
+    "type": "custom",
+    "id": ""
+}

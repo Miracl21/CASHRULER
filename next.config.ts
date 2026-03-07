@@ -1,9 +1,15 @@
 
-import type {NextConfig} from 'next';
+import type { NextConfig } from 'next';
+
+const isCapacitorBuild = process.env.CAPACITOR_BUILD === '1';
 
 const nextConfig: NextConfig = {
-  // NOTE: For Capacitor (mobile) builds, use a separate next.config.capacitor.ts
-  // with output: 'export' and move AI features to API routes.
+  // Static export for Capacitor/Appflow mobile builds
+  ...(isCapacitorBuild ? {
+    output: 'export',
+    trailingSlash: true,
+    images: { unoptimized: true },
+  } : {}),
   images: {
     remotePatterns: [
       {
