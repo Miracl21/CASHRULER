@@ -37,6 +37,8 @@ const SettingsPage: FC = () => {
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setPushPermission(Notification.permission);
+    } else {
+      setPushPermission('unsupported');
     }
   }, []);
 
@@ -230,7 +232,7 @@ const SettingsPage: FC = () => {
         </Card>
 
         {/* ── Push Notifications ── */}
-        {'Notification' in (typeof window !== 'undefined' ? window : {}) && (
+        {pushPermission !== 'unsupported' && (
           <Card className="glass-card border-0 animate-slide-up" style={{ animationDelay: '0.22s', animationFillMode: 'both' }}>
             <CardContent className="pt-5">
               <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 transition-colors hover:bg-muted/50">
@@ -259,8 +261,8 @@ const SettingsPage: FC = () => {
                   }}
                   disabled={pushPermission === 'granted' || pushPermission === 'denied'}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold press-scale transition-all ${pushPermission === 'granted' ? 'bg-green-100 text-green-700 dark:bg-green-900/60 dark:text-green-300'
-                      : pushPermission === 'denied' ? 'bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-300 opacity-50'
-                        : 'bg-primary text-white'
+                    : pushPermission === 'denied' ? 'bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-300 opacity-50'
+                      : 'bg-primary text-white'
                     }`}
                 >
                   {pushPermission === 'granted' ? 'Activé' : pushPermission === 'denied' ? 'Bloqué' : 'Activer'}

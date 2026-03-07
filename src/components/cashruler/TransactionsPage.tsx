@@ -27,6 +27,11 @@ const TransactionsPage: FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
+  const getCompteName = (id: string): string => {
+    const compte = comptes.find(c => c.id === id);
+    return compte?.name || 'Inconnu';
+  };
+
   const sortedExpenses = useMemo(() => {
     let filtered = [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     if (searchQuery.trim()) {
@@ -56,11 +61,6 @@ const TransactionsPage: FC = () => {
     }
     return filtered;
   }, [transfers, searchQuery, comptes]);
-
-  const getCompteName = (id: string): string => {
-    const compte = comptes.find(c => c.id === id);
-    return compte?.name || 'Inconnu';
-  };
 
   const handleEditExpense = (expense: Expense) => { setEditingExpense(expense); setIsExpenseFormOpen(true); };
   const handleEditIncome = (income: Income) => { setEditingIncome(income); setIsIncomeFormOpen(true); };
