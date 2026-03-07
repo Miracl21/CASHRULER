@@ -11,24 +11,34 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { User, Bell, Trash2, Save, LogOut, Moon, Sun } from 'lucide-react';
+import { User, Bell, Trash2, Save, LogOut, Moon, Sun, Download, BellRing } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useTheme } from 'next-themes';
+import { exportExpensesCSV, exportIncomesCSV, exportTransfersCSV, exportAllCSV } from '@/lib/cashruler/export-csv';
+import { hapticMedium } from '@/lib/cashruler/haptics';
 
 const SettingsPage: FC = () => {
-  const { userSettings, updateUserSettings, resetApplicationData } = useAppContext();
+  const { userSettings, updateUserSettings, resetApplicationData, expenses, incomes, transfers, comptes } = useAppContext();
   const { signOut } = useAuth();
   const { theme, setTheme } = useTheme();
   const [username, setUsername] = useState(userSettings.username || '');
   const [enableBudgetNotifications, setEnableBudgetNotifications] = useState(userSettings.enableBudgetNotifications);
   const [enableMotivationalMessages, setEnableMotivationalMessages] = useState(userSettings.enableMotivationalMessages);
   const [resetConfirmText, setResetConfirmText] = useState('');
+  const [pushPermission, setPushPermission] = useState<string>('default');
 
   useEffect(() => {
     setUsername(userSettings.username || '');
     setEnableBudgetNotifications(userSettings.enableBudgetNotifications);
     setEnableMotivationalMessages(userSettings.enableMotivationalMessages);
   }, [userSettings]);
+
+  // Check push notification permission on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setPushPermission(Notification.permission);
+    }
+  }, []);
 
   const handleSaveSettings = () => {
     updateUserSettings({
@@ -195,6 +205,70 @@ const SettingsPage: FC = () => {
             </AlertDialog>
           </CardContent>
         </Card>
+
+        {/* ── Export ── */}
+        <Card className="glass-card border-0 animate-slide-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-base font-semibold text-foreground">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mr-3">
+                <Download className="h-4 w-4 text-blue-600" />
+              </div>
+              Exporter les données
+            </CardTitle>
+            <CardDescription className="text-xs">Télécharger au format CSV (compatible Excel)</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-1.5">
+            <button onClick={() => { hapticMedium(); exportExpensesCSV(expenses, comptes); toast({ title: 'Export réussi', description: 'Dépenses exportées.' }); }}
+              className="w-full p-3 rounded-xl bg-muted/30 text-sm text-foreground press-scale transition-colors hover:bg-muted/50 text-left">Dépenses ({expenses.length})</button>
+            <button onClick={() => { hapticMedium(); exportIncomesCSV(incomes, comptes); toast({ title: 'Export réussi', description: 'Revenus exportés.' }); }}
+              className="w-full p-3 rounded-xl bg-muted/30 text-sm text-foreground press-scale transition-colors hover:bg-muted/50 text-left">Revenus ({incomes.length})</button>
+            <button onClick={() => { hapticMedium(); exportTransfersCSV(transfers, comptes); toast({ title: 'Export réussi', description: 'Transferts exportés.' }); }}
+              className="w-full p-3 rounded-xl bg-muted/30 text-sm text-foreground press-scale transition-colors hover:bg-muted/50 text-left">Transferts ({transfers.length})</button>
+            <button onClick={() => { hapticMedium(); exportAllCSV(expenses, incomes, transfers, comptes); toast({ title: 'Export réussi', description: 'Toutes les données exportées.' }); }}
+              className="w-full p-3 rounded-xl bg-primary/10 text-sm font-semibold text-primary press-scale transition-colors hover:bg-primary/15 text-left">⚡ Export complet</button>
+          </CardContent>
+        </Card>
+
+        {/* ── Push Notifications ── */}
+        {'Notification' in (typeof window !== 'undefined' ? window : {}) && (
+          <Card className="glass-card border-0 animate-slide-up" style={{ animationDelay: '0.22s', animationFillMode: 'both' }}>
+            <CardContent className="pt-5">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 transition-colors hover:bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                    <BellRing className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <Label className="cursor-pointer">
+                    <span className="text-sm font-medium text-foreground">Notifications push</span>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {pushPermission === 'granted' ? 'Activées' : pushPermission === 'denied' ? 'Bloquées (modifier dans les paramètres du navigateur)' : 'Recevez des alertes même hors de l\'app'}
+                    </p>
+                  </Label>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (pushPermission === 'granted') return;
+                    const permission = await Notification.requestPermission();
+                    setPushPermission(permission);
+                    if (permission === 'granted') {
+                      toast({ title: 'Notifications activées', description: 'Vous recevrez des alertes budget.' });
+                      new Notification('CASHRULER', { body: 'Les notifications sont activées ! 👍', icon: '/icons/icon-192.png' });
+                    } else {
+                      toast({ title: 'Notifications refusées', description: 'Vous pouvez les activer dans les paramètres du navigateur.', variant: 'destructive' });
+                    }
+                  }}
+                  disabled={pushPermission === 'granted' || pushPermission === 'denied'}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold press-scale transition-all ${pushPermission === 'granted' ? 'bg-green-100 text-green-700 dark:bg-green-900/60 dark:text-green-300'
+                      : pushPermission === 'denied' ? 'bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-300 opacity-50'
+                        : 'bg-primary text-white'
+                    }`}
+                >
+                  {pushPermission === 'granted' ? 'Activé' : pushPermission === 'denied' ? 'Bloqué' : 'Activer'}
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
         {/* ── Logout ── */}
         <div className="animate-slide-up" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
           <button

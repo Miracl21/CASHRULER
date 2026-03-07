@@ -14,6 +14,7 @@ import type { MonthlyBudget, Compte } from '@/lib/cashruler/types';
 import CategoryIconMapper from './CategoryIconMapper';
 import { format, parseISO, differenceInDays, endOfMonth, startOfMonth, isWithinInterval, subMonths, addMonths, eachMonthOfInterval, isBefore } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -77,6 +78,23 @@ const BudgetPage: FC = () => {
     daysToConsiderForSuggestion = Math.max(0, daysToConsiderForSuggestion);
   }
 
+  // Chart data for budget vs actual comparison
+  const budgetChartData = useMemo(() => {
+    if (!activeMonthlyBudget || activeMonthlyBudget.expenseAllocations.length === 0) return [];
+    return activeMonthlyBudget.expenseAllocations.map(alloc => {
+      const spent = expensesThisSelectedMonthFromCompteCourant
+        .filter(exp => exp.category === alloc.category)
+        .reduce((sum, exp) => sum + exp.amount, 0);
+      const catLabel = EXPENSE_CATEGORIES.find(c => c.name === alloc.category)?.label || alloc.category;
+      return {
+        name: catLabel.length > 8 ? catLabel.slice(0, 8) + '.' : catLabel,
+        budget: alloc.allocatedAmount,
+        reel: spent,
+        over: spent > alloc.allocatedAmount,
+      };
+    });
+  }, [activeMonthlyBudget, expensesThisSelectedMonthFromCompteCourant]);
+
 
   if (isAppContextLoading || !currentDate) {
     return (
@@ -130,6 +148,29 @@ const BudgetPage: FC = () => {
               <CardDescription className="text-xs">Revenu alloué: {activeMonthlyBudget.referenceIncome.toLocaleString('fr-FR')} {CURRENCY_SYMBOL}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Budget vs Actual Chart */}
+              {budgetChartData.length > 0 && (
+                <div className="glass-card border-0 rounded-xl p-3 animate-slide-up" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
+                  <h3 className="text-xs font-semibold text-muted-foreground mb-2">Budget vs Réel</h3>
+                  <ResponsiveContainer width="100%" height={budgetChartData.length * 40 + 20}>
+                    <BarChart data={budgetChartData} layout="vertical" margin={{ left: 0, right: 10, top: 5, bottom: 5 }}>
+                      <XAxis type="number" hide />
+                      <YAxis type="category" dataKey="name" width={65} tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                      <Tooltip
+                        contentStyle={{ fontSize: 11, borderRadius: 12, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', background: 'hsl(var(--card))' }}
+                        formatter={(value: number, name: string) => [value.toLocaleString('fr-FR') + ' ' + CURRENCY_SYMBOL, name === 'budget' ? 'Budget' : 'Réel']}
+                      />
+                      <Bar dataKey="budget" radius={[0, 4, 4, 0]} barSize={8} fill="hsl(var(--primary))" opacity={0.25} />
+                      <Bar dataKey="reel" radius={[0, 4, 4, 0]} barSize={8}>
+                        {budgetChartData.map((entry, idx) => (
+                          <Cell key={idx} fill={entry.over ? 'hsl(var(--destructive))' : 'hsl(var(--primary))'} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
               <div>
                 <h3 className="text-sm font-semibold text-foreground mb-2">Allocations de Dépenses (Compte Courant):</h3>
                 {activeMonthlyBudget.expenseAllocations.length > 0 ? (

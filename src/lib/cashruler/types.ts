@@ -117,6 +117,27 @@ export interface Transfer {
   note?: string;
 }
 
+export type RecurringFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
+
+export interface RecurringTransaction {
+  id: string;
+  type: 'expense' | 'income';
+  // Expense fields
+  title?: string;
+  category?: ExpenseCategory;
+  sourceCompteId?: string;
+  // Income fields
+  name?: string;
+  incomeType?: IncomeType;
+  targetCompteId?: string;
+  // Common fields
+  amount: number;
+  frequency: RecurringFrequency;
+  nextOccurrence: string; // ISO date string
+  note?: string;
+  isActive: boolean;
+}
+
 export type Transaction = Expense | Income | Contribution | Transfer;
 
 export type AppActiveTab = 'dashboard' | 'transactions' | 'budget' | 'comptes' | 'statistics' | 'settings';
@@ -136,6 +157,7 @@ export interface AppState {
   expenseLimits: ExpenseLimit[];
   monthlyBudgets: MonthlyBudget[];
   transfers: Transfer[];
+  recurringTransactions: RecurringTransaction[];
   userSettings: UserSettings;
   isLoading: boolean;
 }
@@ -176,4 +198,9 @@ export interface AppContextType extends Omit<AppState, 'isLoading' | 'userSettin
   getMonthlyBudget: (monthYear: string) => MonthlyBudget | undefined;
 
   addTransfer: (transfer: Omit<Transfer, 'id'>) => void;
+
+  recurringTransactions: RecurringTransaction[];
+  addRecurringTransaction: (rt: Omit<RecurringTransaction, 'id'>) => void;
+  deleteRecurringTransaction: (id: string) => void;
+  applyRecurringTransaction: (rt: RecurringTransaction) => void;
 }

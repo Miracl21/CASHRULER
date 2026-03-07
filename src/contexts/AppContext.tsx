@@ -3,10 +3,10 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { AppState, AppContextType, Expense, Income, PurchaseGoal, Contribution, ExpenseLimit, MonthlyBudget, Compte, CompteType, Transfer, LockType, BudgetExpenseAllocation, UserSettings } from '@/lib/cashruler/types';
+import type { AppState, AppContextType, Expense, Income, PurchaseGoal, Contribution, ExpenseLimit, MonthlyBudget, Compte, CompteType, Transfer, LockType, BudgetExpenseAllocation, UserSettings, RecurringTransaction } from '@/lib/cashruler/types';
 import { COMPTE_TYPE_DETAILS, PREDEFINED_COMPTE_COURANT_ID, CURRENCY_SYMBOL, EXPENSE_CATEGORIES } from '@/lib/cashruler/constants';
 import { toast } from '@/hooks/use-toast';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, addDays, addWeeks, addMonths, addYears } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useAuth } from './AuthContext';
 import * as db from '@/lib/supabase/supabase-service';
@@ -39,6 +39,7 @@ const defaultState: AppState = {
   expenseLimits: [],
   monthlyBudgets: [],
   transfers: [],
+  recurringTransactions: [],
   userSettings: defaultUserSettings,
   isLoading: true,
 };
@@ -98,6 +99,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         purchaseGoals,
         expenseLimits,
         monthlyBudgets,
+        recurringTransactions: [],
         userSettings,
         isLoading: false,
       });
@@ -542,6 +544,58 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  // ─── Recurring Transactions ─────────────────────────────────
+  const addRecurringTransaction = (rt: Omit<RecurringTransaction, 'id'>) => {
+    const newRT: RecurringTransaction = { ...rt, id: genId() };
+    setAppState(prev => ({ ...prev, recurringTransactions: [...prev.recurringTransactions, newRT] }));
+  };
+
+  const deleteRecurringTransaction = (id: string) => {
+    setAppState(prev => ({ ...prev, recurringTransactions: prev.recurringTransactions.filter(rt => rt.id !== id) }));
+  };
+
+  const applyRecurringTransaction = (rt: RecurringTransaction) => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    if (rt.type === 'expense' && rt.title && rt.sourceCompteId) {
+      addExpense({
+        title: rt.title,
+        amount: rt.amount,
+        category: rt.category || 'Autres dépenses',
+        sourceCompteId: rt.sourceCompteId,
+        date: today,
+        note: rt.note || `Récurrent: ${rt.title}`,
+      });
+    } else if (rt.type === 'income' && rt.name && rt.targetCompteId) {
+      addIncome({
+        name: rt.name,
+        amount: rt.amount,
+        type: rt.incomeType || 'Salaire',
+        targetCompteId: rt.targetCompteId,
+        date: today,
+        note: rt.note || `Récurrent: ${rt.name}`,
+      });
+    }
+
+    // Advance nextOccurrence
+    const currentNext = parseISO(rt.nextOccurrence);
+    let newNext: Date;
+    switch (rt.frequency) {
+      case 'daily': newNext = addDays(currentNext, 1); break;
+      case 'weekly': newNext = addWeeks(currentNext, 1); break;
+      case 'monthly': newNext = addMonths(currentNext, 1); break;
+      case 'yearly': newNext = addYears(currentNext, 1); break;
+      default: newNext = addMonths(currentNext, 1);
+    }
+    setAppState(prev => ({
+      ...prev,
+      recurringTransactions: prev.recurringTransactions.map(r =>
+        r.id === rt.id ? { ...r, nextOccurrence: format(newNext, 'yyyy-MM-dd') } : r
+      ),
+    }));
+
+    toast({ title: 'Transaction appliquée', description: `${rt.type === 'expense' ? rt.title : rt.name} - ${rt.amount.toLocaleString('fr-FR')} ${CURRENCY_SYMBOL}` });
+  };
+
   // ─── Balance Calculations ──────────────────────────────
   const getCompteBalance = (compteId: string): number => {
     const compte = appState.comptes.find(c => c.id === compteId);
@@ -594,6 +648,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       updateMonthlyBudget,
       getMonthlyBudget,
       addTransfer,
+      recurringTransactions: appState.recurringTransactions,
+      addRecurringTransaction,
+      deleteRecurringTransaction,
+      applyRecurringTransaction,
     }}>
       {children}
     </AppContext.Provider>

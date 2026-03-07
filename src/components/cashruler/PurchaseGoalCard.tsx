@@ -7,10 +7,10 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import type { PurchaseGoal } from '@/lib/cashruler/types';
 import { CURRENCY_SYMBOL, COMPTE_TYPE_DETAILS } from '@/lib/cashruler/constants';
-import { format, parseISO, formatDistanceToNowStrict, isBefore, startOfToday, differenceInWeeks, differenceInCalendarMonths } from 'date-fns';
+import { format, parseISO, formatDistanceToNowStrict, isBefore, startOfToday, differenceInWeeks, differenceInCalendarMonths, differenceInDays, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Target, PlusCircle, Edit2, Calculator, Info, Trash2, PiggyBank } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAppContext } from '@/contexts/AppContext';
 
@@ -88,6 +88,29 @@ const PurchaseGoalCard: FC<PurchaseGoalCardProps> = ({ goal, onAddContribution, 
     setSavingPlan({ rationale, weeklyAmount, monthlyAmount });
   };
 
+  // Pace indicator: compare ideal vs actual progress
+  const paceInfo = useMemo(() => {
+    if (isGoalReached) return { label: 'Atteint ✓', color: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300', diff: 0 };
+    if (isDeadlinePast) return { label: 'Expiré', color: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300', diff: 0 };
+
+    // Find earliest contribution date or goal creation as start
+    const contributions = goal.contributions || [];
+    const startDate = contributions.length > 0
+      ? parseISO(contributions.reduce((earliest, c) => c.date < earliest ? c.date : earliest, contributions[0].date))
+      : subMonths(today, 1); // fallback
+
+    const totalDuration = Math.max(1, differenceInDays(deadlineDate, startDate));
+    const elapsed = Math.max(0, differenceInDays(today, startDate));
+    const idealProgress = Math.min(100, (elapsed / totalDuration) * 100);
+    const actualProgress = Math.min(100, progressPercentage);
+    const diff = actualProgress - idealProgress;
+
+    if (diff >= 5) return { label: 'En avance 🚀', color: 'bg-green-100 text-green-700 dark:bg-green-900/60 dark:text-green-300', diff: Math.round(diff) };
+    if (diff >= -5) return { label: 'Dans les temps', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300', diff: Math.round(diff) };
+    if (diff >= -20) return { label: 'Légèrement en retard', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/60 dark:text-orange-300', diff: Math.round(diff) };
+    return { label: 'En retard ⚠️', color: 'bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-300', diff: Math.round(diff) };
+  }, [isGoalReached, isDeadlinePast, goal.contributions, deadlineDate, today, progressPercentage]);
+
   return (
     <Card className="mb-4 shadow-sm hover:shadow-md transition-shadow bg-card/70 border border-primary/30">
       <CardHeader className="pb-2 pt-4">
@@ -98,10 +121,13 @@ const PurchaseGoalCard: FC<PurchaseGoalCardProps> = ({ goal, onAddContribution, 
           </CardTitle>
           <div className="flex items-center space-x-1">
             <span className={`text-xs px-2 py-0.5 rounded-full ${isGoalReached ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                : isDeadlinePast ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
-                  : 'bg-accent/20 text-accent-foreground'
+              : isDeadlinePast ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                : 'bg-accent/20 text-accent-foreground'
               }`}>
               {timeRemainingText}
+            </span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${paceInfo.color}`}>
+              {paceInfo.label}
             </span>
             <Button variant="ghost" size="icon" onClick={onEditGoal} className="text-muted-foreground hover:text-primary h-6 w-6">
               <Edit2 className="h-3.5 w-3.5" />
