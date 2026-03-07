@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { User, Bell, Trash2, Save, LogOut, Moon, Sun, Download, BellRing } from 'lucide-react';
+import { User, Bell, Trash2, Save, LogOut, Moon, Sun, Download, BellRing, Brain, Clock, Flame, BarChart3, Target, CalendarClock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useTheme } from 'next-themes';
 import { exportExpensesCSV, exportIncomesCSV, exportTransfersCSV, exportAllCSV } from '@/lib/cashruler/export-csv';
@@ -26,11 +26,26 @@ const SettingsPage: FC = () => {
   const [enableMotivationalMessages, setEnableMotivationalMessages] = useState(userSettings.enableMotivationalMessages);
   const [resetConfirmText, setResetConfirmText] = useState('');
   const [pushPermission, setPushPermission] = useState<string>('default');
+  // Coach state
+  const [enableCoach, setEnableCoach] = useState(userSettings.enableCoachNotifications);
+  const [morningTime, setMorningTime] = useState(userSettings.morningNotificationTime || '07:30');
+  const [eveningTime, setEveningTime] = useState(userSettings.eveningNotificationTime || '20:00');
+  const [enableNudge, setEnableNudge] = useState(userSettings.enableNudgeNotification);
+  const [enableWeekly, setEnableWeekly] = useState(userSettings.enableWeeklyReport);
+  const [enableAlerts, setEnableAlerts] = useState(userSettings.enableRealTimeAlerts);
+  const [enableStreak, setEnableStreak] = useState(userSettings.enableStreakTracking);
 
   useEffect(() => {
     setUsername(userSettings.username || '');
     setEnableBudgetNotifications(userSettings.enableBudgetNotifications);
     setEnableMotivationalMessages(userSettings.enableMotivationalMessages);
+    setEnableCoach(userSettings.enableCoachNotifications);
+    setMorningTime(userSettings.morningNotificationTime || '07:30');
+    setEveningTime(userSettings.eveningNotificationTime || '20:00');
+    setEnableNudge(userSettings.enableNudgeNotification);
+    setEnableWeekly(userSettings.enableWeeklyReport);
+    setEnableAlerts(userSettings.enableRealTimeAlerts);
+    setEnableStreak(userSettings.enableStreakTracking);
   }, [userSettings]);
 
   // Check push notification permission on mount
@@ -47,6 +62,13 @@ const SettingsPage: FC = () => {
       username: username.trim() === '' ? undefined : username.trim(),
       enableBudgetNotifications,
       enableMotivationalMessages,
+      enableCoachNotifications: enableCoach,
+      morningNotificationTime: morningTime,
+      eveningNotificationTime: eveningTime,
+      enableNudgeNotification: enableNudge,
+      enableWeeklyReport: enableWeekly,
+      enableRealTimeAlerts: enableAlerts,
+      enableStreakTracking: enableStreak,
     });
     toast({ title: "Paramètres Enregistrés", description: "Vos préférences ont été mises à jour." });
   };
@@ -271,6 +293,90 @@ const SettingsPage: FC = () => {
             </CardContent>
           </Card>
         )}
+        {/* ── Coach Financier ── */}
+        <Card className="glass-card border-0 animate-slide-up" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base flex items-center gap-2"><Brain className="h-5 w-5 text-indigo-600" /> Coach Financier</CardTitle>
+            <CardDescription className="text-xs">Notifications intelligentes pour votre discipline</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {/* Master toggle */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500/15 flex items-center justify-center"><Bell className="h-4 w-4 text-indigo-600" /></div>
+                <Label className="text-sm font-medium">Activer le coach</Label>
+              </div>
+              <Switch checked={enableCoach} onCheckedChange={setEnableCoach} />
+            </div>
+
+            {enableCoach && (
+              <div className="space-y-2.5 animate-slide-up">
+                {/* Morning time */}
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-amber-500" />
+                    <span className="text-sm">🌅 Notification matin</span>
+                  </div>
+                  <input type="time" value={morningTime} onChange={e => setMorningTime(e.target.value)}
+                    className="bg-background border border-border rounded-lg px-2 py-1 text-sm w-24 text-center" />
+                </div>
+
+                {/* Evening time */}
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm">🌙 Bilan du soir</span>
+                  </div>
+                  <input type="time" value={eveningTime} onChange={e => setEveningTime(e.target.value)}
+                    className="bg-background border border-border rounded-lg px-2 py-1 text-sm w-24 text-center" />
+                </div>
+
+                {/* Nudge */}
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <BellRing className="h-4 w-4 text-orange-500" />
+                    <span className="text-sm">🔔 Nudge (aucune activité)</span>
+                  </div>
+                  <Switch checked={enableNudge} onCheckedChange={setEnableNudge} />
+                </div>
+
+                {/* Real-time alerts */}
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-red-500" />
+                    <span className="text-sm">⚠️ Alertes budget (80%/100%)</span>
+                  </div>
+                  <Switch checked={enableAlerts} onCheckedChange={setEnableAlerts} />
+                </div>
+
+                {/* Weekly report */}
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <CalendarClock className="h-4 w-4 text-purple-500" />
+                    <span className="text-sm">📊 Rapport hebdomadaire</span>
+                  </div>
+                  <Switch checked={enableWeekly} onCheckedChange={setEnableWeekly} />
+                </div>
+
+                {/* Streak */}
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <Flame className="h-4 w-4 text-orange-600" />
+                    <span className="text-sm">🔥 Streak de discipline</span>
+                  </div>
+                  <Switch checked={enableStreak} onCheckedChange={setEnableStreak} />
+                </div>
+
+                {/* Savings reminder info */}
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-muted/30">
+                  <Target className="h-4 w-4 text-green-500" />
+                  <span className="text-xs text-muted-foreground">🎯 Rappels épargne + 🏆 Célébrations automatiques</span>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* ── Logout ── */}
         <div className="animate-slide-up" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
           <button

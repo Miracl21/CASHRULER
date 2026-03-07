@@ -147,6 +147,14 @@ export interface UserSettings {
   username?: string;
   enableBudgetNotifications: boolean;
   enableMotivationalMessages: boolean;
+  // Coach Financier
+  enableCoachNotifications: boolean;
+  morningNotificationTime: string; // HH:mm
+  eveningNotificationTime: string; // HH:mm
+  enableNudgeNotification: boolean;
+  enableWeeklyReport: boolean;
+  enableRealTimeAlerts: boolean;
+  enableStreakTracking: boolean;
 }
 
 export interface AppState {

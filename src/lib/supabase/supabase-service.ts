@@ -20,12 +20,33 @@ export async function fetchUserSettings(userId: string): Promise<UserSettings> {
         .maybeSingle();
 
     if (error) throw error;
-    if (!data) return { enableBudgetNotifications: true, enableMotivationalMessages: true };
+
+    const defaults: UserSettings = {
+        enableBudgetNotifications: true,
+        enableMotivationalMessages: true,
+        enableCoachNotifications: true,
+        morningNotificationTime: '07:30',
+        eveningNotificationTime: '20:00',
+        enableNudgeNotification: true,
+        enableWeeklyReport: true,
+        enableRealTimeAlerts: true,
+        enableStreakTracking: true,
+    };
+
+    if (!data) return defaults;
 
     return {
+        ...defaults,
         username: data.username ?? undefined,
-        enableBudgetNotifications: data.enable_budget_notifications,
-        enableMotivationalMessages: data.enable_motivational_messages,
+        enableBudgetNotifications: data.enable_budget_notifications ?? true,
+        enableMotivationalMessages: data.enable_motivational_messages ?? true,
+        enableCoachNotifications: data.enable_coach_notifications ?? true,
+        morningNotificationTime: data.morning_notification_time ?? '07:30',
+        eveningNotificationTime: data.evening_notification_time ?? '20:00',
+        enableNudgeNotification: data.enable_nudge_notification ?? true,
+        enableWeeklyReport: data.enable_weekly_report ?? true,
+        enableRealTimeAlerts: data.enable_real_time_alerts ?? true,
+        enableStreakTracking: data.enable_streak_tracking ?? true,
     };
 }
 
@@ -35,6 +56,13 @@ export async function upsertUserSettings(userId: string, s: Partial<UserSettings
         username: s.username ?? null,
         enable_budget_notifications: s.enableBudgetNotifications,
         enable_motivational_messages: s.enableMotivationalMessages,
+        enable_coach_notifications: s.enableCoachNotifications,
+        morning_notification_time: s.morningNotificationTime,
+        evening_notification_time: s.eveningNotificationTime,
+        enable_nudge_notification: s.enableNudgeNotification,
+        enable_weekly_report: s.enableWeeklyReport,
+        enable_real_time_alerts: s.enableRealTimeAlerts,
+        enable_streak_tracking: s.enableStreakTracking,
     }, { onConflict: 'user_id' });
     if (error) throw error;
 }

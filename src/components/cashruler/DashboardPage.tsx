@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { PlusCircle, DollarSign, Edit2, Trash2, ShieldAlert, ShieldCheck, Send, PiggyBank, TrendingUp, TrendingDown, Sparkles } from 'lucide-react';
+import { PlusCircle, DollarSign, Edit2, Trash2, ShieldAlert, ShieldCheck, Send, PiggyBank, TrendingUp, TrendingDown, Sparkles, Flame } from 'lucide-react';
 import ExpenseForm from './ExpenseForm';
 import IncomeForm from './IncomeForm';
 import TransferForm from './TransferForm';
@@ -19,6 +19,8 @@ import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { calculateStreak } from '@/lib/cashruler/coach-engine';
+import { useCoachNotifications } from '@/hooks/useCoachNotifications';
 
 
 const DashboardPage: FC = () => {
@@ -34,6 +36,9 @@ const DashboardPage: FC = () => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [limitToDelete, setLimitToDelete] = useState<string | null>(null);
+
+  // Coach notifications scheduler
+  useCoachNotifications();
 
   useEffect(() => {
     setCurrentDate(new Date());
@@ -92,6 +97,11 @@ const DashboardPage: FC = () => {
 
     return messages[0];
   }, [currentDate, isAppContextLoading, userSettings.enableMotivationalMessages, totalExpensesTodayFromCompteCourant, compteCourantBalance, expenseLimits, expensesTodayFromCompteCourant]);
+
+  const streakInfo = useMemo(() => {
+    if (!userSettings.enableStreakTracking || isAppContextLoading) return null;
+    return calculateStreak(expenses, expenseLimits);
+  }, [expenses, expenseLimits, userSettings.enableStreakTracking, isAppContextLoading]);
 
 
   if (isAppContextLoading || !currentDate) {
@@ -157,6 +167,12 @@ const DashboardPage: FC = () => {
               {format(currentDate, 'd MMM yyyy', { locale: fr })}
             </span>
           </div>
+          {streakInfo && streakInfo.days >= 2 && (
+            <div className="flex items-center gap-1.5 mt-1 bg-white/10 rounded-lg px-2.5 py-1 w-fit">
+              <Flame className="h-3.5 w-3.5 text-orange-400" />
+              <span className="text-[11px] text-white/90 font-semibold">{streakInfo.message}</span>
+            </div>
+          )}
           <p className="text-3xl font-bold tracking-tight mt-1">
             {compteCourantBalance.toLocaleString('fr-FR')} <span className="text-lg font-semibold text-white/80">{CURRENCY_SYMBOL}</span>
           </p>

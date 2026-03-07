@@ -29,6 +29,13 @@ const defaultUserSettings: UserSettings = {
   username: undefined,
   enableBudgetNotifications: true,
   enableMotivationalMessages: true,
+  enableCoachNotifications: true,
+  morningNotificationTime: '07:30',
+  eveningNotificationTime: '20:00',
+  enableNudgeNotification: true,
+  enableWeeklyReport: true,
+  enableRealTimeAlerts: true,
+  enableStreakTracking: true,
 };
 
 const defaultState: AppState = {
