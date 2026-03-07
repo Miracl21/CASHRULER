@@ -74,13 +74,13 @@ const AuthPage: FC = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 p-4">
-            <Card className="w-full max-w-md shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+        <div className="flex items-center justify-center min-h-screen p-4" style={{ background: 'linear-gradient(135deg, hsl(158 64% 92%), hsl(173 58% 90%), hsl(200 60% 92%)', backgroundSize: '300% 300%', animation: 'gradient-shift 8s ease infinite' }}>
+            <Card className="w-full max-w-md glass-card border-0 animate-scale-in">
                 <CardHeader className="text-center space-y-2 pb-2">
-                    <div className="mx-auto w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg mb-2">
+                    <div className="mx-auto w-16 h-16 gradient-primary rounded-2xl flex items-center justify-center shadow-lg mb-2">
                         <span className="text-2xl font-bold text-white">CR</span>
                     </div>
-                    <CardTitle className="text-2xl font-bold bg-gradient-to-r from-green-700 to-emerald-600 bg-clip-text text-transparent">
+                    <CardTitle className="text-2xl font-bold bg-gradient-to-r from-emerald-700 to-teal-600 bg-clip-text text-transparent">
                         CASHRULER
                     </CardTitle>
                     <CardDescription className="text-muted-foreground">
@@ -149,7 +149,7 @@ const AuthPage: FC = () => {
                     <CardFooter className="flex flex-col gap-3 pt-2">
                         <Button
                             type="submit"
-                            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-md"
+                            className="w-full gradient-primary hover:opacity-90 text-white shadow-md press-scale transition-all"
                             disabled={isLoading}
                         >
                             {isLoading ? (

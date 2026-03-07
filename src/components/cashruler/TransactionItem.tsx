@@ -1,7 +1,6 @@
 'use client';
 
 import type { FC } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { Expense, Income } from '@/lib/cashruler/types';
 import CategoryIconMapper from './CategoryIconMapper';
@@ -20,45 +19,45 @@ const TransactionItem: FC<TransactionItemProps> = ({ transaction, onEdit, onDele
   const isExpense = 'category' in transaction;
   const title = isExpense ? transaction.title : (transaction as Income).name;
   const categoryOrType = isExpense ? transaction.category : (transaction as Income).type;
-  const amountColor = isExpense ? 'text-destructive' : 'text-green-600';
+  const amountColor = isExpense ? 'text-destructive' : 'text-primary';
   const amountPrefix = isExpense ? '-' : '+';
+  const iconBg = isExpense ? 'bg-destructive/10' : 'bg-primary/10';
+  const iconColor = isExpense ? 'text-destructive' : 'text-primary';
 
   return (
-    <Card className="mb-3 shadow-sm hover:shadow-md transition-shadow bg-card">
-      <CardContent className="p-4 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-accent/20 rounded-full">
+    <div className="p-3 rounded-xl bg-card/80 mb-1.5 transition-all duration-200 hover:bg-card press-scale">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0`}>
             <CategoryIconMapper
               categoryName={categoryOrType || 'Autres dépenses'}
               type={isExpense ? 'expense' : 'income'}
-              className="h-6 w-6 text-accent-foreground"
+              className={`h-5 w-5 ${iconColor}`}
             />
           </div>
-          <div>
-            <p className="font-semibold text-foreground">{title}</p>
-            <p className="text-sm text-muted-foreground">
-              {categoryOrType} - {format(parseISO(transaction.date), 'd MMM yyyy', { locale: fr })}
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-sm text-foreground truncate">{title}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {categoryOrType} · {format(parseISO(transaction.date), 'd MMM', { locale: fr })}
             </p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <p className={`font-bold text-lg ${amountColor}`}>
-            {amountPrefix}{transaction.amount.toLocaleString('fr-FR')} {CURRENCY_SYMBOL}
+        <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+          <p className={`font-bold text-sm ${amountColor} tabular-nums`}>
+            {amountPrefix}{transaction.amount.toLocaleString('fr-FR')} <span className="text-xs">{CURRENCY_SYMBOL}</span>
           </p>
-          <Button variant="ghost" size="icon" onClick={onEdit} className="text-muted-foreground hover:text-primary">
-            <Edit2 className="h-4 w-4" />
+          <Button variant="ghost" size="icon" onClick={onEdit} className="h-7 w-7 text-muted-foreground hover:text-primary">
+            <Edit2 className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onDelete} className="text-muted-foreground hover:text-destructive">
-            <Trash2 className="h-4 w-4" />
+          <Button variant="ghost" size="icon" onClick={onDelete} className="h-7 w-7 text-muted-foreground hover:text-destructive">
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </div>
-      </CardContent>
+      </div>
       {transaction.note && (
-        <div className="px-4 pb-3 pt-1 border-t border-border">
-          <p className="text-xs text-muted-foreground italic">Note: {transaction.note}</p>
-        </div>
+        <p className="text-[11px] text-muted-foreground mt-1.5 ml-[52px] italic">Note: {transaction.note}</p>
       )}
-    </Card>
+    </div>
   );
 };
 

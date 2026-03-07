@@ -12,8 +12,8 @@ interface BottomNavigationBarProps {
 
 const BottomNavigationBar: FC<BottomNavigationBarProps> = ({ activeTab, onTabChange }) => {
   return (
-    <nav className="bg-card border-t border-border shadow-md flex-shrink-0">
-      <div className="flex justify-around items-center h-14 pb-[env(safe-area-inset-bottom)]">
+    <nav className="glass flex-shrink-0 border-t-0" style={{ borderTop: 'none' }}>
+      <div className="flex justify-around items-center h-16 pb-[env(safe-area-inset-bottom)] px-2">
         {NAVIGATION_TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -22,13 +22,31 @@ const BottomNavigationBar: FC<BottomNavigationBarProps> = ({ activeTab, onTabCha
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={cn(
-                "flex flex-col items-center justify-center p-1.5 rounded-lg transition-colors duration-200 flex-1 min-w-0",
-                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                "flex flex-col items-center justify-center py-1.5 px-2 rounded-xl transition-all duration-300 flex-1 min-w-0 press-scale relative",
+                isActive
+                  ? "text-primary"
+                  : "text-muted-foreground hover:text-foreground"
               )}
               aria-current={isActive ? "page" : undefined}
             >
-              <Icon className={cn("h-5 w-5 mb-0.5", isActive ? "text-primary" : "")} />
-              <span className={cn("text-[10px] font-medium truncate w-full text-center", isActive ? "text-primary" : "")}>{tab.label}</span>
+              {/* Active pill indicator */}
+              {isActive && (
+                <span className="absolute top-0.5 w-8 h-1 rounded-full bg-primary animate-scale-in" />
+              )}
+              <Icon
+                className={cn(
+                  "h-5 w-5 mb-0.5 transition-all duration-300",
+                  isActive ? "text-primary scale-110" : ""
+                )}
+              />
+              <span
+                className={cn(
+                  "text-[10px] font-semibold truncate w-full text-center transition-all duration-300",
+                  isActive ? "text-primary" : ""
+                )}
+              >
+                {tab.label}
+              </span>
             </button>
           );
         })}

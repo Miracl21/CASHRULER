@@ -36,9 +36,11 @@ const AppClient: FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-dvh bg-background">
-      <main className="flex-1 overflow-y-auto min-h-0">
-        {renderContent()}
+    <div className="flex flex-col h-dvh gradient-bg">
+      <main className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+        <div key={activeTab} className="animate-fade-in h-full">
+          {renderContent()}
+        </div>
       </main>
       <PWAInstallPrompt />
       <BottomNavigationBar activeTab={activeTab} onTabChange={setActiveTab} />

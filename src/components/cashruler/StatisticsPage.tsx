@@ -121,11 +121,11 @@ const StatisticsPage: FC = () => {
 
 
   return (
-    <div className="h-full overflow-y-auto overflow-x-hidden w-full">
-      <div className="p-4 space-y-6 bg-background pb-8 w-full">
-        <h1 className="text-xl font-bold text-foreground">Statistiques</h1>
+    <div className="h-full overflow-y-auto overflow-x-hidden">
+      <div className="p-4 space-y-5 pb-8">
+        <h1 className="text-xl font-bold text-foreground animate-slide-up">Statistiques</h1>
 
-        <Card className="shadow-md overflow-hidden">
+        <Card className="glass-card border-0 overflow-hidden animate-slide-up" style={{ animationDelay: '0.05s', animationFillMode: 'both' }}>
           <CardHeader>
             <CardTitle className="flex items-center text-foreground"><PieChartIcon className="mr-2 h-5 w-5 text-primary" />Répartition des Dépenses</CardTitle>
             <CardDescription>Visualisez où va votre argent. ({CURRENCY_SYMBOL})</CardDescription>
@@ -163,7 +163,7 @@ const StatisticsPage: FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-md overflow-hidden">
+        <Card className="glass-card border-0 overflow-hidden animate-slide-up" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
           <CardHeader>
             <CardTitle className="flex items-center text-foreground"><BarChartIconLucide className="mr-2 h-5 w-5 text-primary" />Revenus vs Dépenses</CardTitle>
             <CardDescription>Comparez vos entrées et sorties d'argent. ({CURRENCY_SYMBOL})</CardDescription>
@@ -204,7 +204,7 @@ const StatisticsPage: FC = () => {
           </CardContent>
         </Card>
 
-        <Card className="shadow-md overflow-hidden">
+        <Card className="glass-card border-0 overflow-hidden animate-slide-up" style={{ animationDelay: '0.15s', animationFillMode: 'both' }}>
           <CardHeader>
             <CardTitle className="flex items-center text-foreground"><Activity className="mr-2 h-5 w-5 text-primary" />Tendances Financières</CardTitle>
             <CardDescription>Évolution de vos revenus et dépenses dans le temps. ({CURRENCY_SYMBOL})</CardDescription>

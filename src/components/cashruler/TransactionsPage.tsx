@@ -4,13 +4,12 @@ import type { FC } from 'react';
 import { useState, useMemo } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
 import TransactionItem from './TransactionItem';
-import type { Expense, Income, Transaction } from '@/lib/cashruler/types';
+import type { Expense, Income } from '@/lib/cashruler/types';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import ExpenseForm from './ExpenseForm';
 import IncomeForm from './IncomeForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 type TransactionType = 'expense' | 'income';
@@ -21,23 +20,14 @@ const TransactionsPage: FC = () => {
   const [isIncomeFormOpen, setIsIncomeFormOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | undefined>(undefined);
   const [editingIncome, setEditingIncome] = useState<Income | undefined>(undefined);
-
   const [dialogOpen, setDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string, type: TransactionType } | null>(null);
-
 
   const sortedExpenses = useMemo(() => [...expenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [expenses]);
   const sortedIncomes = useMemo(() => [...incomes].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), [incomes]);
 
-  const handleEditExpense = (expense: Expense) => {
-    setEditingExpense(expense);
-    setIsExpenseFormOpen(true);
-  };
-
-  const handleEditIncome = (income: Income) => {
-    setEditingIncome(income);
-    setIsIncomeFormOpen(true);
-  };
+  const handleEditExpense = (expense: Expense) => { setEditingExpense(expense); setIsExpenseFormOpen(true); };
+  const handleEditIncome = (income: Income) => { setEditingIncome(income); setIsIncomeFormOpen(true); };
 
   const handleDeleteRequest = (id: string, type: TransactionType) => {
     setItemToDelete({ id, type });
@@ -46,94 +36,78 @@ const TransactionsPage: FC = () => {
 
   const confirmDelete = () => {
     if (itemToDelete) {
-      if (itemToDelete.type === 'expense') {
-        deleteExpense(itemToDelete.id);
-      } else {
-        deleteIncome(itemToDelete.id);
-      }
+      if (itemToDelete.type === 'expense') deleteExpense(itemToDelete.id);
+      else deleteIncome(itemToDelete.id);
     }
     setDialogOpen(false);
     setItemToDelete(null);
   };
 
-
   return (
-    <div className="p-4 flex flex-col h-full bg-background">
-      <div className="space-y-3 mb-4">
+    <div className="p-4 flex flex-col h-full">
+      <div className="space-y-3 mb-4 animate-slide-up">
         <h1 className="text-xl font-bold text-foreground">Transactions</h1>
         <div className="flex gap-2">
-          <Button onClick={() => { setEditingExpense(undefined); setIsExpenseFormOpen(true); }} className="shadow-sm flex-1" size="sm">
-            <PlusCircle className="mr-1.5 h-4 w-4" /> Dépense
-          </Button>
-          <Button onClick={() => { setEditingIncome(undefined); setIsIncomeFormOpen(true); }} variant="secondary" className="shadow-sm flex-1" size="sm">
-            <PlusCircle className="mr-1.5 h-4 w-4" /> Revenu
-          </Button>
+          <button
+            onClick={() => { setEditingExpense(undefined); setIsExpenseFormOpen(true); }}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold text-white gradient-expense shadow-md press-scale transition-all"
+          >
+            <PlusCircle className="h-4 w-4" /> Dépense
+          </button>
+          <button
+            onClick={() => { setEditingIncome(undefined); setIsIncomeFormOpen(true); }}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold text-white gradient-income shadow-md press-scale transition-all"
+          >
+            <PlusCircle className="h-4 w-4" /> Revenu
+          </button>
         </div>
       </div>
 
       <Tabs defaultValue="expenses" className="flex-grow flex flex-col">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="expenses">Dépenses ({sortedExpenses.length})</TabsTrigger>
-          <TabsTrigger value="incomes">Revenus ({sortedIncomes.length})</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 glass-card p-1 h-11">
+          <TabsTrigger value="expenses" className="rounded-lg text-sm font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all">
+            Dépenses ({sortedExpenses.length})
+          </TabsTrigger>
+          <TabsTrigger value="incomes" className="rounded-lg text-sm font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-foreground transition-all">
+            Revenus ({sortedIncomes.length})
+          </TabsTrigger>
         </TabsList>
-        <TabsContent value="expenses" className="flex-grow mt-2 overflow-hidden">
-          <ScrollArea className="h-full pr-3">
-            {sortedExpenses.length === 0 ? (
-              <p className="text-muted-foreground text-center py-10">Aucune dépense enregistrée.</p>
-            ) : (
-              sortedExpenses.map(exp => (
-                <TransactionItem
-                  key={exp.id}
-                  transaction={exp}
-                  onEdit={() => handleEditExpense(exp)}
-                  onDelete={() => handleDeleteRequest(exp.id, 'expense')}
-                />
-              ))
-            )}
-          </ScrollArea>
+        <TabsContent value="expenses" className="flex-grow mt-3 overflow-y-auto">
+          {sortedExpenses.length === 0 ? (
+            <p className="text-muted-foreground text-center py-10 text-sm">Aucune dépense enregistrée.</p>
+          ) : (
+            <div className="space-y-1">
+              {sortedExpenses.map((exp, i) => (
+                <div key={exp.id} className="animate-slide-up" style={{ animationDelay: `${Math.min(i * 0.03, 0.3)}s`, animationFillMode: 'both' }}>
+                  <TransactionItem transaction={exp} onEdit={() => handleEditExpense(exp)} onDelete={() => handleDeleteRequest(exp.id, 'expense')} />
+                </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
-        <TabsContent value="incomes" className="flex-grow mt-2 overflow-hidden">
-          <ScrollArea className="h-full pr-3">
-            {sortedIncomes.length === 0 ? (
-              <p className="text-muted-foreground text-center py-10">Aucun revenu enregistré.</p>
-            ) : (
-              sortedIncomes.map(inc => (
-                <TransactionItem
-                  key={inc.id}
-                  transaction={inc}
-                  onEdit={() => handleEditIncome(inc)}
-                  onDelete={() => handleDeleteRequest(inc.id, 'income')}
-                />
-              ))
-            )}
-          </ScrollArea>
+        <TabsContent value="incomes" className="flex-grow mt-3 overflow-y-auto">
+          {sortedIncomes.length === 0 ? (
+            <p className="text-muted-foreground text-center py-10 text-sm">Aucun revenu enregistré.</p>
+          ) : (
+            <div className="space-y-1">
+              {sortedIncomes.map((inc, i) => (
+                <div key={inc.id} className="animate-slide-up" style={{ animationDelay: `${Math.min(i * 0.03, 0.3)}s`, animationFillMode: 'both' }}>
+                  <TransactionItem transaction={inc} onEdit={() => handleEditIncome(inc)} onDelete={() => handleDeleteRequest(inc.id, 'income')} />
+                </div>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
-      <ExpenseForm
-        isOpen={isExpenseFormOpen}
-        onOpenChange={(isOpen) => {
-          setIsExpenseFormOpen(isOpen);
-          if (!isOpen) setEditingExpense(undefined);
-        }}
-        expenseToEdit={editingExpense}
-      />
-      <IncomeForm
-        isOpen={isIncomeFormOpen}
-        onOpenChange={(isOpen) => {
-          setIsIncomeFormOpen(isOpen);
-          if (!isOpen) setEditingIncome(undefined);
-        }}
-        incomeToEdit={editingIncome}
-      />
+      <ExpenseForm isOpen={isExpenseFormOpen} onOpenChange={(isOpen) => { setIsExpenseFormOpen(isOpen); if (!isOpen) setEditingExpense(undefined); }} expenseToEdit={editingExpense} />
+      <IncomeForm isOpen={isIncomeFormOpen} onOpenChange={(isOpen) => { setIsIncomeFormOpen(isOpen); if (!isOpen) setEditingIncome(undefined); }} incomeToEdit={editingIncome} />
 
       <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="glass-card border-0 animate-scale-in">
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous sûr?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action ne peut pas être annulée. Cela supprimera définitivement la transaction.
-            </AlertDialogDescription>
+            <AlertDialogDescription>Cette action supprimera définitivement la transaction.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setItemToDelete(null)}>Annuler</AlertDialogCancel>

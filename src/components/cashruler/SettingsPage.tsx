@@ -9,9 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { User, Bell, Trash2, Save } from 'lucide-react';
+import { User, Bell, Trash2, Save, ChevronRight } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const SettingsPage: FC = () => {
@@ -38,40 +37,52 @@ const SettingsPage: FC = () => {
 
   const handleResetData = () => {
     resetApplicationData();
-    // No need to reset local state here as AppContext will trigger a re-render with default state
   };
 
   return (
-    <ScrollArea className="h-full">
-      <div className="p-4 space-y-8 bg-background pb-8">
-        <h1 className="text-2xl font-bold text-foreground">Paramètres</h1>
+    <div className="h-full overflow-y-auto overflow-x-hidden">
+      <div className="p-4 space-y-5 pb-8">
+        <h1 className="text-xl font-bold text-foreground animate-slide-up">Paramètres</h1>
 
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center text-foreground"><User className="mr-2 h-5 w-5 text-primary" />Personnalisation</CardTitle>
+        {/* ── Personalization ── */}
+        <Card className="glass-card border-0 animate-slide-up" style={{ animationDelay: '0.05s', animationFillMode: 'both' }}>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-base font-semibold text-foreground">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mr-3">
+                <User className="h-4 w-4 text-primary" />
+              </div>
+              Personnalisation
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="username">Nom d'utilisateur (Optionnel)</Label>
+          <CardContent>
+            <div className="space-y-2">
+              <Label htmlFor="username" className="text-sm text-muted-foreground">Nom d'utilisateur</Label>
               <Input
                 id="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Entrez votre nom ou pseudo"
+                className="bg-muted/50 border-0 focus-visible:ring-primary/30"
               />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center text-foreground"><Bell className="mr-2 h-5 w-5 text-primary" />Notifications</CardTitle>
+        {/* ── Notifications ── */}
+        <Card className="glass-card border-0 animate-slide-up" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-base font-semibold text-foreground">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center mr-3">
+                <Bell className="h-4 w-4 text-primary" />
+              </div>
+              Notifications
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-md border">
-              <Label htmlFor="budget-notifications" className="flex-grow">
-                Activer les notifications de budget
-                <p className="text-xs text-muted-foreground">Recevoir des alertes pour les seuils de dépenses (50%, 75%, 100%).</p>
+          <CardContent className="space-y-1">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 transition-colors hover:bg-muted/50">
+              <Label htmlFor="budget-notifications" className="flex-grow cursor-pointer">
+                <span className="text-sm font-medium text-foreground">Alertes budget</span>
+                <p className="text-xs text-muted-foreground mt-0.5">Seuils de dépenses (50%, 75%, 100%)</p>
               </Label>
               <Switch
                 id="budget-notifications"
@@ -79,10 +90,10 @@ const SettingsPage: FC = () => {
                 onCheckedChange={setEnableBudgetNotifications}
               />
             </div>
-            <div className="flex items-center justify-between p-3 rounded-md border">
-              <Label htmlFor="motivational-messages" className="flex-grow">
-                Activer les messages de motivation
-                <p className="text-xs text-muted-foreground">Recevoir des encouragements pour vos progrès.</p>
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 transition-colors hover:bg-muted/50">
+              <Label htmlFor="motivational-messages" className="flex-grow cursor-pointer">
+                <span className="text-sm font-medium text-foreground">Messages de motivation</span>
+                <p className="text-xs text-muted-foreground mt-0.5">Encouragements pour vos progrès</p>
               </Label>
               <Switch
                 id="motivational-messages"
@@ -93,32 +104,41 @@ const SettingsPage: FC = () => {
           </CardContent>
         </Card>
 
-        <div>
-          <Button onClick={handleSaveSettings} className="shadow-sm w-full">
-            <Save className="mr-2 h-4 w-4" />Enregistrer
-          </Button>
+        {/* ── Save Button ── */}
+        <div className="animate-slide-up" style={{ animationDelay: '0.15s', animationFillMode: 'both' }}>
+          <button
+            onClick={handleSaveSettings}
+            className="w-full py-3 rounded-xl gradient-primary text-white font-semibold text-sm shadow-lg press-scale transition-all flex items-center justify-center gap-2"
+          >
+            <Save className="h-4 w-4" /> Enregistrer les modifications
+          </button>
         </div>
 
-
-        <Card className="shadow-md border-destructive">
-          <CardHeader>
-            <CardTitle className="flex items-center text-destructive"><Trash2 className="mr-2 h-5 w-5" />Gestion des Données</CardTitle>
-            <CardDescription className="text-destructive/80">Attention, ces actions sont irréversibles.</CardDescription>
+        {/* ── Danger Zone ── */}
+        <Card className="glass-card border-0 border-l-4 !border-l-destructive animate-slide-up" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center text-base font-semibold text-destructive">
+              <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center mr-3">
+                <Trash2 className="h-4 w-4 text-destructive" />
+              </div>
+              Zone de danger
+            </CardTitle>
+            <CardDescription className="text-destructive/70 text-xs">Actions irréversibles</CardDescription>
           </CardHeader>
           <CardContent>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="w-full shadow-sm text-sm">
+                <Button variant="destructive" className="w-full shadow-sm text-sm press-scale">
                   Réinitialiser toutes les données
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className="glass-card border-0 animate-scale-in">
                 <AlertDialogHeader>
                   <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Cette action ne peut pas être annulée. Cela effacera définitivement toutes vos données CASHRULER (caisses, transactions, budgets, objectifs, etc.).
+                    Cette action effacera définitivement toutes vos données CASHRULER.
                     <br /><br />
-                    Pour confirmer, veuillez taper "<strong>EFFACER</strong>" dans le champ ci-dessous.
+                    Tapez "<strong>EFFACER</strong>" pour confirmer.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <Input
@@ -126,7 +146,7 @@ const SettingsPage: FC = () => {
                   value={resetConfirmText}
                   onChange={(e) => setResetConfirmText(e.target.value)}
                   placeholder='Tapez "EFFACER" pour confirmer'
-                  className="mt-2"
+                  className="mt-2 bg-muted/50 border-0"
                 />
                 <AlertDialogFooter>
                   <AlertDialogCancel onClick={() => setResetConfirmText('')}>Annuler</AlertDialogCancel>
@@ -150,9 +170,8 @@ const SettingsPage: FC = () => {
           </CardContent>
         </Card>
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 
 export default SettingsPage;
-

@@ -1,29 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* ── Core: Clean white/gray base with emerald accents ── */
-    --background: 0 0% 98%;
-    --foreground: 220 15% 18%;
+    /* ── Premium Clean Palette ── */
+    --background: 210 20% 98%;
+    --foreground: 220 20% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 18%;
+    --card-foreground: 220 20% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 18%;
+    --popover-foreground: 220 20% 14%;
 
-    /* Primary: Rich Emerald */
-    --primary: 152 60% 36%;
+    /* Primary: Deep Emerald */
+    --primary: 158 64% 40%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Cool Slate */
-    --secondary: 215 20% 93%;
-    --secondary-foreground: 220 15% 25%;
+    /* Secondary: Soft Slate */
+    --secondary: 220 14% 94%;
+    --secondary-foreground: 220 15% 30%;
 
     /* Muted */
-    --muted: 220 14% 95%;
+    --muted: 220 14% 96%;
     --muted-foreground: 220 10% 46%;
 
     /* Accent: Teal */
@@ -33,29 +35,34 @@
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 89%;
+    --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 152 60% 36%;
+    --ring: 158 64% 40%;
 
     --radius: 0.75rem;
 
+    /* Glassmorphism */
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.35);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+
     /* Sidebar */
-    --sidebar-background: 152 45% 18%;
-    --sidebar-foreground: 152 10% 92%;
+    --sidebar-background: 158 40% 16%;
+    --sidebar-foreground: 160 10% 92%;
     --sidebar-primary: 162 72% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 152 35% 28%;
-    --sidebar-accent-foreground: 152 10% 92%;
-    --sidebar-border: 152 30% 25%;
+    --sidebar-accent: 158 30% 26%;
+    --sidebar-accent-foreground: 160 10% 92%;
+    --sidebar-border: 158 25% 24%;
     --sidebar-ring: 162 72% 45%;
 
-    /* ── Chart colors: HIGH CONTRAST distinct hues ── */
-    --chart-1: 152 60% 36%;
-    /* Emerald (primary) — income */
+    /* Chart: high-contrast distinct hues */
+    --chart-1: 158 64% 40%;
+    /* Emerald */
     --chart-2: 0 72% 51%;
-    /* Red — expenses */
+    /* Red */
     --chart-3: 217 91% 60%;
-    /* Bright Blue */
+    /* Blue */
     --chart-4: 35 92% 50%;
     /* Orange */
     --chart-5: 270 70% 58%;
@@ -63,23 +70,23 @@
   }
 
   .dark {
-    --background: 222 20% 8%;
+    --background: 224 20% 6%;
     --foreground: 210 20% 92%;
 
-    --card: 222 18% 12%;
+    --card: 224 18% 10%;
     --card-foreground: 210 20% 92%;
 
-    --popover: 222 18% 12%;
+    --popover: 224 18% 10%;
     --popover-foreground: 210 20% 92%;
 
     --primary: 162 72% 45%;
-    --primary-foreground: 220 20% 8%;
+    --primary-foreground: 224 20% 6%;
 
-    --secondary: 215 15% 20%;
+    --secondary: 220 15% 18%;
     --secondary-foreground: 210 20% 88%;
 
-    --muted: 215 15% 18%;
-    --muted-foreground: 215 12% 55%;
+    --muted: 220 15% 15%;
+    --muted-foreground: 220 12% 55%;
 
     --accent: 173 58% 36%;
     --accent-foreground: 0 0% 100%;
@@ -87,11 +94,14 @@
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 215 15% 22%;
-    --input: 215 15% 20%;
+    --border: 220 15% 18%;
+    --input: 220 15% 18%;
     --ring: 162 72% 45%;
 
-    /* Chart colors dark — brighter versions */
+    --glass-bg: rgba(15, 23, 42, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
     --chart-1: 162 72% 50%;
     --chart-2: 0 85% 60%;
     --chart-3: 217 91% 65%;
@@ -106,16 +116,147 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     overscroll-behavior-y: contain;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Allow text selection in inputs and textareas */
   input,
   textarea,
   [contenteditable] {
     user-select: text;
+  }
+}
+
+@layer utilities {
+
+  /* ── Glassmorphism ── */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--radius);
+  }
+
+  /* ── Premium Gradients ── */
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(158 64% 40%), hsl(173 58% 39%));
+  }
+
+  .gradient-income {
+    background: linear-gradient(135deg, hsl(158 64% 40%), hsl(162 72% 45%));
+  }
+
+  .gradient-expense {
+    background: linear-gradient(135deg, hsl(0 72% 51%), hsl(15 80% 50%));
+  }
+
+  .gradient-transfer {
+    background: linear-gradient(135deg, hsl(217 91% 60%), hsl(230 80% 55%));
+  }
+
+  .gradient-bg {
+    background: linear-gradient(180deg, hsl(210 20% 98%) 0%, hsl(200 25% 95%) 100%);
+  }
+
+  /* ── Interactive hover/press ── */
+  .press-scale {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .press-scale:active {
+    transform: scale(0.96);
+  }
+
+  /* ── Shimmer for skeletons ── */
+  .shimmer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+/* ── Keyframe Animations ── */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes pulse-soft {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
   }
 }
