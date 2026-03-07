@@ -4,17 +4,19 @@
 import type { FC } from 'react';
 import { useState, useEffect } from 'react';
 import { useAppContext } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { User, Bell, Trash2, Save, ChevronRight } from 'lucide-react';
+import { User, Bell, Trash2, Save, LogOut } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const SettingsPage: FC = () => {
   const { userSettings, updateUserSettings, resetApplicationData } = useAppContext();
+  const { signOut } = useAuth();
   const [username, setUsername] = useState(userSettings.username || '');
   const [enableBudgetNotifications, setEnableBudgetNotifications] = useState(userSettings.enableBudgetNotifications);
   const [enableMotivationalMessages, setEnableMotivationalMessages] = useState(userSettings.enableMotivationalMessages);
@@ -169,6 +171,18 @@ const SettingsPage: FC = () => {
             </AlertDialog>
           </CardContent>
         </Card>
+        {/* ── Logout ── */}
+        <div className="animate-slide-up" style={{ animationDelay: '0.25s', animationFillMode: 'both' }}>
+          <button
+            onClick={async () => {
+              await signOut();
+              toast({ title: 'Déconnexion', description: 'Vous avez été déconnecté.' });
+            }}
+            className="w-full py-3 rounded-xl border-2 border-destructive/30 text-destructive font-semibold text-sm press-scale transition-all flex items-center justify-center gap-2 hover:bg-destructive/5"
+          >
+            <LogOut className="h-4 w-4" /> Se déconnecter
+          </button>
+        </div>
       </div>
     </div>
   );

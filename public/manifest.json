@@ -4,8 +4,8 @@
   "description": "Gérez vos finances personnelles simplement.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#E8F5E9",
-  "theme_color": "#388E3C",
+  "background_color": "#f5f7fa",
+  "theme_color": "#0D9668",
   "orientation": "portrait-primary",
   "icons": [
     {

@@ -16,7 +16,7 @@ import PurchaseGoalForm from './PurchaseGoalForm';
 import AddContributionModal from './AddContributionModal';
 import IncomeForm from './IncomeForm';
 import TransferForm from './TransferForm';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import type { Compte, PurchaseGoal, CompteType, LockType } from '@/lib/cashruler/types';
 import { CURRENCY_SYMBOL, COMPTE_TYPE_DETAILS, AVAILABLE_COMPTE_ICONS, DEFAULT_CUSTOM_COMPTE_ICON, DEFAULT_CUSTOM_COMPTE_COLOR, PREDEFINED_COMPTE_COURANT_ID, LOCK_STATUS_OPTIONS } from '@/lib/cashruler/constants';
 import { useForm, Controller } from 'react-hook-form';
@@ -225,7 +225,7 @@ const ComptesPage: FC = () => {
 
 
   return (
-    <div className="p-4 flex flex-col h-full bg-background">
+    <div className="p-4 flex flex-col h-full overflow-y-auto overflow-x-hidden">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-foreground">Gestion des Comptes</h1>
         <Button onClick={() => handleOpenCompteForm()} className="shadow-sm">
@@ -233,7 +233,7 @@ const ComptesPage: FC = () => {
         </Button>
       </div>
 
-      <ScrollArea className="flex-grow pr-1">
+      <div className="flex-grow">
         {comptes.length === 0 ? (
           <Card className="text-center py-10">
             <CardContent>
@@ -333,7 +333,7 @@ const ComptesPage: FC = () => {
             );
           })
         )}
-      </ScrollArea>
+      </div>
 
       {/* Compte Form Modal */}
       <Dialog open={isCompteFormOpen} onOpenChange={(open) => { setIsCompteFormOpen(open); if (!open) setEditingCompte(undefined); }}>

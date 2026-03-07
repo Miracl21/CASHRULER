@@ -17,7 +17,7 @@ import { useAppContext } from '@/contexts/AppContext';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { format, parse, startOfMonth, eachMonthOfInterval, subMonths, addMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 
 
 const budgetExpenseAllocationSchema = z.object({
@@ -194,7 +194,7 @@ const MonthlyBudgetForm: FC<MonthlyBudgetFormProps> = ({ isOpen, onOpenChange, b
         <DialogHeader>
           <DialogTitle>{budgetToEdit || getMonthlyBudget(currentMonthYear || format(new Date(), 'yyyy-MM')) ? 'Modifier le Budget (Compte Courant)' : 'Nouveau Budget (Compte Courant)'}</DialogTitle>
         </DialogHeader>
-        <ScrollArea className="max-h-[70vh] p-1">
+        <div className="max-h-[70vh] overflow-y-auto p-1">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <Label htmlFor="monthYear">Mois du Budget</Label>
@@ -382,7 +382,7 @@ const MonthlyBudgetForm: FC<MonthlyBudgetFormProps> = ({ isOpen, onOpenChange, b
               </Button>
             </DialogFooter>
           </form>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

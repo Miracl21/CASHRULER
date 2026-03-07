@@ -14,7 +14,7 @@ import type { MonthlyBudget, Compte } from '@/lib/cashruler/types';
 import CategoryIconMapper from './CategoryIconMapper';
 import { format, parseISO, differenceInDays, endOfMonth, startOfMonth, isWithinInterval, subMonths, addMonths, eachMonthOfInterval, isBefore } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -90,8 +90,8 @@ const BudgetPage: FC = () => {
   }
 
   return (
-    <ScrollArea className="h-full">
-      <div className="p-4 flex flex-col bg-background space-y-6">
+    <div className="h-full overflow-y-auto overflow-x-hidden">
+      <div className="p-4 flex flex-col space-y-5 pb-6">
         <div className="space-y-3">
           <h1 className="text-xl font-bold text-foreground flex items-center"><Scale className="mr-2 h-6 w-6 text-primary flex-shrink-0" />Budget du Compte Courant</h1>
           <div className="flex items-center gap-2">
@@ -240,7 +240,7 @@ const BudgetPage: FC = () => {
           selectedMonthYear={selectedMonthYear}
         />
       </div>
-    </ScrollArea>
+    </div>
   );
 };
 
