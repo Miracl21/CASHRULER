@@ -4,7 +4,7 @@
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { AppState, AppContextType, Expense, Income, PurchaseGoal, Contribution, ExpenseLimit, MonthlyBudget, Compte, CompteType, Transfer, LockType, BudgetExpenseAllocation, UserSettings, RecurringTransaction } from '@/lib/cashruler/types';
-import { COMPTE_TYPE_DETAILS, PREDEFINED_COMPTE_COURANT_ID, CURRENCY_SYMBOL, EXPENSE_CATEGORIES } from '@/lib/cashruler/constants';
+import { COMPTE_TYPE_DETAILS, PREDEFINED_COMPTE_COURANT_ID, PREDEFINED_COMPTE_LOISIRS_ID, PREDEFINED_COMPTE_PROJETS_ID, CURRENCY_SYMBOL, EXPENSE_CATEGORIES } from '@/lib/cashruler/constants';
 import { toast } from '@/hooks/use-toast';
 import { format, parseISO, addDays, addWeeks, addMonths, addYears } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -90,9 +90,29 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   // ─── Ensure predefined comptes exist in a comptes list ──
   const ensurePredefinedComptes = useCallback((comptes: Compte[]) => {
-    const existingIds = comptes.map(c => c.id);
+    // Migrate old account types (DON -> LOISIRS, OEUVRES_ROYAUME -> PROJETS)
+    const migratedComptes = comptes.map(c => {
+      // Migrate by old ID or old type name
+      if (c.id === 'compte_don' || (c.type as string) === 'DON') {
+        return { ...c, id: PREDEFINED_COMPTE_LOISIRS_ID, type: 'LOISIRS' as CompteType, name: 'Loisirs & Plaisirs', isPredefined: true };
+      }
+      if (c.id === 'compte_oeuvres_royaume' || (c.type as string) === 'OEUVRES_ROYAUME') {
+        return { ...c, id: PREDEFINED_COMPTE_PROJETS_ID, type: 'PROJETS' as CompteType, name: 'Projets Personnels', isPredefined: true };
+      }
+      return c;
+    });
+
+    // Remove duplicates (keep latest by id)
+    const seenIds = new Set<string>();
+    const dedupedComptes = migratedComptes.filter(c => {
+      if (seenIds.has(c.id)) return false;
+      seenIds.add(c.id);
+      return true;
+    });
+
+    const existingIds = dedupedComptes.map(c => c.id);
     const missingDefaults = initialDefaultComptes.filter(dc => !existingIds.includes(dc.id));
-    const allComptes = [...comptes];
+    const allComptes = [...dedupedComptes];
     for (const dc of missingDefaults) {
       allComptes.push({ ...dc, contributions: [] });
     }
