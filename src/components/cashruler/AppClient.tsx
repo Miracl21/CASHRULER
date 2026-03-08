@@ -36,7 +36,7 @@ const AppClient: FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-dvh gradient-bg">
+    <div className="flex flex-col h-dvh gradient-bg" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <main className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
         <div key={activeTab} className="animate-fade-in h-full">
           {renderContent()}

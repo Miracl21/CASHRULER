@@ -10,12 +10,14 @@ const config: CapacitorConfig = {
     plugins: {
         LocalNotifications: {
             smallIcon: 'ic_stat_icon',
-            iconColor: '#6366f1',
+            iconColor: '#10b981',
             sound: 'default',
         },
         Haptics: {},
         StatusBar: {
             style: 'DARK',
+            overlaysWebView: true,
+            backgroundColor: '#00000000',
         },
     },
 };
