@@ -2,7 +2,7 @@
 import { type LucideIcon } from 'lucide-react';
 import {
   ShoppingBasket, Car, Home, HeartPulse, Gamepad2, ShoppingBag as ShoppingBagIcon, BookOpen, Briefcase, MoreHorizontal,
-  Landmark, Laptop, Gift as GiftIcon, Tag, TrendingUp, Undo2, PiggyBank, LineChart, LayoutDashboard, ListChecks,
+  Landmark, Laptop, Gift as GiftIcon, Tag, TrendingUp, Undo2, PiggyBank, LineChart, LayoutDashboard, ListChecks, Target,
   CalendarClock, HandCoins, ShieldCheck, TrendingUp as TrendingUpIcon, Church, Palette, PlusCircle, Settings2, BriefcaseBusiness, Scale, PackageSearch, Lock, Unlock, Ban, Cog
 } from 'lucide-react';
 import type { ExpenseCategory, IncomeType, AppActiveTab, CompteType, LockType } from './types';
@@ -32,17 +32,17 @@ export const INCOME_TYPES: { name: IncomeType; icon: LucideIcon, label: string }
 
 // --- Compte Constants ---
 export const PREDEFINED_COMPTE_COURANT_ID = 'compte_courant';
-export const PREDEFINED_COMPTE_DON_ID = 'compte_don';
+export const PREDEFINED_COMPTE_LOISIRS_ID = 'compte_loisirs';
 export const PREDEFINED_COMPTE_URGENCE_ID = 'compte_urgence';
 export const PREDEFINED_COMPTE_INVESTISSEMENT_ID = 'compte_investissement';
-export const PREDEFINED_COMPTE_OEUVRES_ROYAUME_ID = 'compte_oeuvres_royaume';
+export const PREDEFINED_COMPTE_PROJETS_ID = 'compte_projets';
 
 export const COMPTE_TYPE_DETAILS: Record<CompteType, { label: string; icon: LucideIcon; defaultColor?: string, isPredefined?: boolean, id?: string, canHavePurchaseGoals?: boolean, defaultLockStatus?: LockType }> = {
   COURANT: { label: 'Compte Courant', icon: Scale, defaultColor: '#3B82F6', isPredefined: true, id: PREDEFINED_COMPTE_COURANT_ID, canHavePurchaseGoals: true, defaultLockStatus: 'none' },
-  DON: { label: 'Compte de Dons', icon: HandCoins, defaultColor: '#10B981', isPredefined: true, id: PREDEFINED_COMPTE_DON_ID, canHavePurchaseGoals: true, defaultLockStatus: 'none' },
+  LOISIRS: { label: 'Loisirs & Plaisirs', icon: Gamepad2, defaultColor: '#10B981', isPredefined: true, id: PREDEFINED_COMPTE_LOISIRS_ID, canHavePurchaseGoals: true, defaultLockStatus: 'none' },
   URGENCE: { label: 'Compte d\'Urgence', icon: ShieldCheck, defaultColor: '#EF4444', isPredefined: true, id: PREDEFINED_COMPTE_URGENCE_ID, canHavePurchaseGoals: true, defaultLockStatus: 'outgoing_only' },
   INVESTISSEMENT: { label: 'Compte d\'Investissement', icon: TrendingUpIcon, defaultColor: '#F59E0B', isPredefined: true, id: PREDEFINED_COMPTE_INVESTISSEMENT_ID, canHavePurchaseGoals: true, defaultLockStatus: 'none' },
-  OEUVRES_ROYAUME: { label: 'Avancement Œuvres Royaume', icon: Church, defaultColor: '#8B5CF6', isPredefined: true, id: PREDEFINED_COMPTE_OEUVRES_ROYAUME_ID, canHavePurchaseGoals: true, defaultLockStatus: 'none' },
+  PROJETS: { label: 'Projets Personnels', icon: Target, defaultColor: '#8B5CF6', isPredefined: true, id: PREDEFINED_COMPTE_PROJETS_ID, canHavePurchaseGoals: true, defaultLockStatus: 'none' },
   CUSTOM_EPARGNE: { label: 'Épargne Personnalisée', icon: PiggyBank, defaultColor: '#6366F1', canHavePurchaseGoals: true, defaultLockStatus: 'none' },
   CUSTOM_PROJET: { label: 'Projet Personnalisé', icon: BriefcaseBusiness, defaultColor: '#EC4899', canHavePurchaseGoals: true, defaultLockStatus: 'none' },
   CUSTOM_AUTRE: { label: 'Autre Compte Personnalisé', icon: Palette, defaultColor: '#84CC16', canHavePurchaseGoals: true, defaultLockStatus: 'none' },

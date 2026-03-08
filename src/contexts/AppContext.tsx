@@ -10,6 +10,7 @@ import { format, parseISO, addDays, addWeeks, addMonths, addYears } from 'date-f
 import { fr } from 'date-fns/locale';
 import { useAuth } from './AuthContext';
 import * as db from '@/lib/supabase/supabase-service';
+import * as local from '@/lib/cashruler/local-storage-service';
 
 
 const initialDefaultComptes: Compte[] = Object.entries(COMPTE_TYPE_DETAILS)
@@ -62,10 +63,47 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [appState, setAppState] = useState<AppState>(defaultState);
   const [isLoading, setIsLoading] = useState(true);
 
-  // ─── Load from Supabase when user changes ──────────────
-  const loadFromSupabase = useCallback(async (userId: string) => {
-    setIsLoading(true);
+  // ─── Helper: persist state to localStorage after every change ──
+  const persistToLocal = useCallback((state: AppState) => {
+    local.saveAllLocalData({
+      comptes: state.comptes,
+      incomes: state.incomes,
+      expenses: state.expenses,
+      transfers: state.transfers,
+      purchaseGoals: state.purchaseGoals,
+      expenseLimits: state.expenseLimits,
+      monthlyBudgets: state.monthlyBudgets,
+      recurringTransactions: state.recurringTransactions,
+      userSettings: state.userSettings,
+    });
+  }, []);
+
+  // ─── Helper: try Supabase in background, silently fail if offline ──
+  const trySupabase = useCallback(async (fn: () => Promise<void>) => {
     try {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+      await fn();
+    } catch (e) {
+      console.warn('[Sync] Supabase sync failed (offline?):', e);
+    }
+  }, []);
+
+  // ─── Ensure predefined comptes exist in a comptes list ──
+  const ensurePredefinedComptes = useCallback((comptes: Compte[]) => {
+    const existingIds = comptes.map(c => c.id);
+    const missingDefaults = initialDefaultComptes.filter(dc => !existingIds.includes(dc.id));
+    const allComptes = [...comptes];
+    for (const dc of missingDefaults) {
+      allComptes.push({ ...dc, contributions: [] });
+    }
+    return allComptes;
+  }, []);
+
+  // ─── Load from Supabase and merge with local ──────────────
+  const syncFromSupabase = useCallback(async (userId: string) => {
+    try {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+
       const [comptes, incomes, expenses, transfers, purchaseGoals, expenseLimits, monthlyBudgets, userSettings] =
         await Promise.all([
           db.fetchComptes(userId),
@@ -78,27 +116,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           db.fetchUserSettings(userId),
         ]);
 
-      // Ensure predefined comptes exist
-      const existingIds = comptes.map(c => c.id);
-      const missingDefaults = initialDefaultComptes.filter(dc => !existingIds.includes(dc.id));
-
-      // Insert missing predefined comptes
-      for (const dc of missingDefaults) {
-        try {
-          await db.insertCompte(userId, { ...dc });
-        } catch {
-          // May already exist (race condition)
-        }
+      // Ensure predefined comptes exist in Supabase
+      const allComptes = ensurePredefinedComptes(comptes);
+      const missingInDb = initialDefaultComptes.filter(dc => !comptes.some(c => c.id === dc.id));
+      for (const dc of missingInDb) {
+        try { await db.insertCompte(userId, dc); } catch { /* ok */ }
       }
 
-      const allComptes = [...comptes];
-      for (const dc of missingDefaults) {
-        if (!allComptes.some(c => c.id === dc.id)) {
-          allComptes.push({ ...dc, contributions: [] });
-        }
-      }
-
-      setAppState({
+      const newState: AppState = {
         comptes: allComptes,
         incomes,
         expenses,
@@ -109,56 +134,118 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         recurringTransactions: [],
         userSettings,
         isLoading: false,
-      });
-    } catch (error) {
-      console.error('Failed to load data from Supabase', error);
-      toast({ title: 'Erreur de chargement', description: 'Impossible de charger vos données. Vérifiez votre connexion.', variant: 'destructive' });
-      // Fallback to empty state with predefined comptes
-      setAppState({
-        ...defaultState,
-        comptes: [...initialDefaultComptes],
-        userSettings: { ...defaultUserSettings },
-        isLoading: false,
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+      };
 
+      setAppState(newState);
+      persistToLocal(newState);
+      local.setLastSyncTimestamp(Date.now());
+    } catch (error) {
+      console.warn('[Sync] Background Supabase sync failed:', error);
+      // Don't show error toast — the local data is already loaded
+    }
+  }, [ensurePredefinedComptes, persistToLocal]);
+
+  // ─── Main data loading: local first, then Supabase ──────────
   useEffect(() => {
     if (user) {
-      loadFromSupabase(user.id);
+      // Step 1: Load from localStorage immediately (instant, offline-ready)
+      if (local.hasLocalData()) {
+        const localData = local.loadAllLocalData();
+        const localComptes = ensurePredefinedComptes(localData.comptes);
+        setAppState({
+          comptes: localComptes,
+          incomes: localData.incomes,
+          expenses: localData.expenses,
+          transfers: localData.transfers,
+          purchaseGoals: localData.purchaseGoals,
+          expenseLimits: localData.expenseLimits,
+          monthlyBudgets: localData.monthlyBudgets,
+          recurringTransactions: localData.recurringTransactions,
+          userSettings: localData.userSettings || defaultUserSettings,
+          isLoading: false,
+        });
+        setIsLoading(false);
+
+        // Step 2: Sync Supabase in background (non-blocking)
+        syncFromSupabase(user.id);
+      } else {
+        // First time: try Supabase, fallback to empty + predefined
+        setIsLoading(true);
+        syncFromSupabase(user.id).finally(() => {
+          setIsLoading(false);
+          // If still no data after sync, initialize with defaults
+          setAppState(prev => {
+            if (prev.comptes.length === 0) {
+              const initialState = {
+                ...defaultState,
+                comptes: ensurePredefinedComptes([]),
+                userSettings: defaultUserSettings,
+                isLoading: false,
+              };
+              persistToLocal(initialState);
+              return initialState;
+            }
+            return { ...prev, isLoading: false };
+          });
+        });
+      }
     } else {
-      // Not logged in → reset to empty
-      setAppState({ ...defaultState, isLoading: false });
+      // Not logged in → load from local if available, otherwise defaults
+      if (local.hasLocalData()) {
+        const localData = local.loadAllLocalData();
+        const localComptes = ensurePredefinedComptes(localData.comptes);
+        setAppState({
+          comptes: localComptes,
+          incomes: localData.incomes,
+          expenses: localData.expenses,
+          transfers: localData.transfers,
+          purchaseGoals: localData.purchaseGoals,
+          expenseLimits: localData.expenseLimits,
+          monthlyBudgets: localData.monthlyBudgets,
+          recurringTransactions: localData.recurringTransactions,
+          userSettings: localData.userSettings || defaultUserSettings,
+          isLoading: false,
+        });
+      } else {
+        const initialState = {
+          ...defaultState,
+          comptes: ensurePredefinedComptes([]),
+          isLoading: false,
+        };
+        setAppState(initialState);
+        persistToLocal(initialState);
+      }
       setIsLoading(false);
     }
-  }, [user, loadFromSupabase]);
+  }, [user, syncFromSupabase, ensurePredefinedComptes, persistToLocal]);
+
+  // ─── Auto-persist to localStorage on every state change ──
+  useEffect(() => {
+    if (!appState.isLoading && appState.comptes.length > 0) {
+      persistToLocal(appState);
+    }
+  }, [appState, persistToLocal]);
 
   // ─── User Settings ──────────────────────────────────────
   const updateUserSettings = async (newSettings: Partial<UserSettings>) => {
     const merged = { ...appState.userSettings, ...newSettings };
     setAppState(prev => ({ ...prev, userSettings: merged }));
     if (user) {
-      try { await db.upsertUserSettings(user.id, merged); } catch (e) { console.error(e); }
+      trySupabase(() => db.upsertUserSettings(user.id, merged));
     }
   };
 
   const resetApplicationData = async () => {
     if (user) {
-      try {
-        await db.deleteAllUserData(user.id);
-      } catch (e) {
-        console.error('Failed to reset data in Supabase', e);
-      }
+      trySupabase(() => db.deleteAllUserData(user.id));
     }
     // Re-insert predefined comptes
     if (user) {
       for (const dc of initialDefaultComptes) {
-        try { await db.insertCompte(user.id, dc); } catch { /* ok */ }
+        trySupabase(() => db.insertCompte(user!.id, dc));
       }
     }
-    setAppState({
+    const resetState: AppState = {
       ...defaultState,
       comptes: [...initialDefaultComptes].map(c => ({
         ...c,
@@ -166,7 +253,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       })),
       userSettings: { ...defaultUserSettings },
       isLoading: false,
-    });
+    };
+    setAppState(resetState);
+    persistToLocal(resetState);
     toast({ title: 'Application Réinitialisée', description: 'Toutes vos données ont été effacées.' });
   };
 
@@ -175,7 +264,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const newCompte: Compte = { ...compte, id: genId(), contributions: [], isPredefined: false, lockStatus: compte.lockStatus || 'none' };
     setAppState(prev => ({ ...prev, comptes: [...prev.comptes, newCompte] }));
     if (user) {
-      try { await db.insertCompte(user.id, newCompte); } catch (e) { console.error(e); }
+      trySupabase(() => db.insertCompte(user.id, newCompte));
     }
   };
 
@@ -185,7 +274,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       comptes: prev.comptes.map(c => c.id === updatedCompte.id ? { ...updatedCompte, contributions: updatedCompte.contributions || [], lockStatus: updatedCompte.lockStatus || 'none' } : c),
     }));
     if (user) {
-      try { await db.updateCompteDb(updatedCompte); } catch (e) { console.error(e); }
+      trySupabase(() => db.updateCompteDb(updatedCompte));
     }
   };
 
@@ -211,7 +300,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       transfers: prev.transfers.filter(t => t.fromCompteId !== id && t.toCompteId !== id),
     }));
     if (user) {
-      try { await db.deleteCompteDb(id); } catch (e) { console.error(e); }
+      trySupabase(() => db.deleteCompteDb(id));
     }
   };
 
@@ -235,10 +324,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       ),
     }));
     if (user) {
-      try { await db.insertContributionToCompte(user.id, compteId, newContrib); } catch (e) { console.error(e); }
+      trySupabase(() => db.insertContributionToCompte(user.id, compteId, newContrib));
     }
 
-    const compteEpargneTypes: CompteType[] = ['URGENCE', 'INVESTISSEMENT', 'OEUVRES_ROYAUME', 'CUSTOM_EPARGNE', 'CUSTOM_PROJET'];
+    const compteEpargneTypes: CompteType[] = ['URGENCE', 'INVESTISSEMENT', 'PROJETS', 'CUSTOM_EPARGNE', 'CUSTOM_PROJET'];
     if (appState.userSettings.enableMotivationalMessages && compteEpargneTypes.includes(targetCompte.type)) {
       toast({
         title: 'Excellent Progrès !',
@@ -257,7 +346,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const newIncome: Income = { ...income, id: genId() };
     setAppState(prev => ({ ...prev, incomes: [...prev.incomes, newIncome] }));
     if (user) {
-      try { await db.insertIncome(user.id, newIncome); } catch (e) { console.error(e); }
+      trySupabase(() => db.insertIncome(user.id, newIncome));
     }
   };
 
@@ -269,14 +358,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
     setAppState(prev => ({ ...prev, incomes: prev.incomes.map(inc => inc.id === updatedIncome.id ? updatedIncome : inc) }));
     if (user) {
-      try { await db.updateIncomeDb(updatedIncome); } catch (e) { console.error(e); }
+      trySupabase(() => db.updateIncomeDb(updatedIncome));
     }
   };
 
   const deleteIncome = async (id: string) => {
     setAppState(prev => ({ ...prev, incomes: prev.incomes.filter(inc => inc.id !== id) }));
     if (user) {
-      try { await db.deleteIncomeDb(id); } catch (e) { console.error(e); }
+      trySupabase(() => db.deleteIncomeDb(id));
     }
   };
 
@@ -337,7 +426,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (user) {
-      try { await db.insertExpense(user.id, newExpense); } catch (e) { console.error(e); }
+      trySupabase(() => db.insertExpense(user.id, newExpense));
     }
   };
 
@@ -357,14 +446,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (user) {
-      try { await db.updateExpenseDb(updatedExpense); } catch (e) { console.error(e); }
+      trySupabase(() => db.updateExpenseDb(updatedExpense));
     }
   };
 
   const deleteExpense = async (id: string) => {
     setAppState(prev => ({ ...prev, expenses: prev.expenses.filter(exp => exp.id !== id) }));
     if (user) {
-      try { await db.deleteExpenseDb(id); } catch (e) { console.error(e); }
+      trySupabase(() => db.deleteExpenseDb(id));
     }
   };
 
@@ -373,7 +462,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const newGoal: PurchaseGoal = { ...goal, id: genId(), contributions: [], isCompletedNotified: false };
     setAppState(prev => ({ ...prev, purchaseGoals: [...prev.purchaseGoals, newGoal] }));
     if (user) {
-      try { await db.insertPurchaseGoal(user.id, newGoal); } catch (e) { console.error(e); }
+      trySupabase(() => db.insertPurchaseGoal(user.id, newGoal));
     }
   };
 
@@ -383,14 +472,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       purchaseGoals: prev.purchaseGoals.map(g => g.id === updatedGoal.id ? { ...updatedGoal, contributions: updatedGoal.contributions || [] } : g),
     }));
     if (user) {
-      try { await db.updatePurchaseGoalDb(updatedGoal); } catch (e) { console.error(e); }
+      trySupabase(() => db.updatePurchaseGoalDb(updatedGoal));
     }
   };
 
   const deletePurchaseGoal = async (id: string) => {
     setAppState(prev => ({ ...prev, purchaseGoals: prev.purchaseGoals.filter(g => g.id !== id) }));
     if (user) {
-      try { await db.deletePurchaseGoalDb(id); } catch (e) { console.error(e); }
+      trySupabase(() => db.deletePurchaseGoalDb(id));
     }
   };
 
@@ -423,13 +512,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (user) {
-      try {
+      trySupabase(async () => {
         await db.insertContributionToGoal(user.id, goalId, contribution);
         if (goalReachedAndNotNotified) {
           const goal = appState.purchaseGoals.find(g => g.id === goalId);
           if (goal) await db.updatePurchaseGoalDb({ ...goal, isCompletedNotified: true });
         }
-      } catch (e) { console.error(e); }
+      });
     }
 
     if (appState.userSettings.enableMotivationalMessages) {
@@ -457,21 +546,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const newLimit: ExpenseLimit = { ...limit, id: genId() };
     setAppState(prev => ({ ...prev, expenseLimits: [...prev.expenseLimits, newLimit] }));
     if (user) {
-      try { await db.insertExpenseLimit(user.id, newLimit); } catch (e) { console.error(e); }
+      trySupabase(() => db.insertExpenseLimit(user.id, newLimit));
     }
   };
 
   const updateExpenseLimit = async (updatedLimit: ExpenseLimit) => {
     setAppState(prev => ({ ...prev, expenseLimits: prev.expenseLimits.map(l => l.id === updatedLimit.id ? updatedLimit : l) }));
     if (user) {
-      try { await db.updateExpenseLimitDb(updatedLimit); } catch (e) { console.error(e); }
+      trySupabase(() => db.updateExpenseLimitDb(updatedLimit));
     }
   };
 
   const deleteExpenseLimit = async (id: string) => {
     setAppState(prev => ({ ...prev, expenseLimits: prev.expenseLimits.filter(l => l.id !== id) }));
     if (user) {
-      try { await db.deleteExpenseLimitDb(id); } catch (e) { console.error(e); }
+      trySupabase(() => db.deleteExpenseLimitDb(id));
     }
   };
 
@@ -502,7 +591,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (user) {
-      try { await db.upsertMonthlyBudget(user.id, budgetWithCalculatedSavings); } catch (e) { console.error(e); }
+      trySupabase(() => db.upsertMonthlyBudget(user.id, budgetWithCalculatedSavings));
     }
   };
 
@@ -522,7 +611,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       toast({ title: 'Budget Mis à Jour', description: `Le budget pour ${budgetMonthFormatted} a été mis à jour.` });
     }
     if (user) {
-      try { await db.upsertMonthlyBudget(user.id, budgetWithCalculatedSavings); } catch (e) { console.error(e); }
+      trySupabase(() => db.upsertMonthlyBudget(user.id, budgetWithCalculatedSavings));
     }
   };
 
@@ -547,7 +636,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const newTransfer: Transfer = { ...transfer, id: genId() };
     setAppState(prev => ({ ...prev, transfers: [...prev.transfers, newTransfer] }));
     if (user) {
-      try { await db.insertTransfer(user.id, newTransfer); } catch (e) { console.error(e); }
+      trySupabase(() => db.insertTransfer(user.id, newTransfer));
     }
   };
 

@@ -21,7 +21,7 @@ export type IncomeType =
   | 'Autres revenus';
 
 // --- Compte System Types ---
-export type PredefinedCompteType = 'COURANT' | 'DON' | 'URGENCE' | 'INVESTISSEMENT' | 'OEUVRES_ROYAUME';
+export type PredefinedCompteType = 'COURANT' | 'LOISIRS' | 'URGENCE' | 'INVESTISSEMENT' | 'PROJETS';
 export type CustomCompteType = 'CUSTOM_EPARGNE' | 'CUSTOM_PROJET' | 'CUSTOM_AUTRE';
 export type CompteType = PredefinedCompteType | CustomCompteType;
 
