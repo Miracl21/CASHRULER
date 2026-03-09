@@ -12,9 +12,13 @@ import StatisticsPage from './StatisticsPage';
 import BudgetPage from './BudgetPage';
 import SettingsPage from './SettingsPage';
 import type { AppActiveTab } from '@/lib/cashruler/types';
+import { useCoachNotifications } from '@/hooks/useCoachNotifications';
 
 const AppClient: FC = () => {
   const [activeTab, setActiveTab] = useState<AppActiveTab>('dashboard');
+
+  // Coach notifications — always active regardless of which tab is showing
+  useCoachNotifications();
 
   const renderContent = () => {
     switch (activeTab) {

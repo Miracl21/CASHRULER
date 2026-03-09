@@ -266,21 +266,40 @@ export function useCoachNotifications() {
         }
     }, [userSettings, expenses, incomes, expenseLimits, purchaseGoals, recurringTransactions, getPurchaseGoalContributionsTotal]);
 
-    // ── Request permission on mount ──
+    // ── Request permission on mount + send confirmation ──
     useEffect(() => {
-        async function requestPermission() {
+        async function requestAndConfirm() {
             try {
                 const { LocalNotifications } = await import('@capacitor/local-notifications');
-                const result = await LocalNotifications.checkPermissions();
+                let result = await LocalNotifications.checkPermissions();
+
                 if (result.display !== 'granted') {
-                    await LocalNotifications.requestPermissions();
+                    result = await LocalNotifications.requestPermissions();
+                }
+
+                if (result.display === 'granted') {
+                    // Send a confirmation notification on first grant
+                    const confirmKey = 'cashruler_notif_confirmed';
+                    if (!localStorage.getItem(confirmKey)) {
+                        await LocalNotifications.schedule({
+                            notifications: [{
+                                id: 9999,
+                                title: '✅ CASHRULER — Notifications activées !',
+                                body: 'Votre coach financier est prêt. Vous recevrez des rappels matin et soir pour rester discipliné. 💪',
+                                smallIcon: 'ic_stat_icon',
+                                largeIcon: 'ic_launcher',
+                                sound: 'default',
+                            }],
+                        });
+                        localStorage.setItem(confirmKey, 'true');
+                    }
                 }
             } catch {
                 // Not on Capacitor — skip
             }
         }
         if (userSettings.enableCoachNotifications) {
-            requestPermission();
+            requestAndConfirm();
         }
     }, [userSettings.enableCoachNotifications]);
 

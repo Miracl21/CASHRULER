@@ -20,7 +20,6 @@ import { fr } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { calculateStreak } from '@/lib/cashruler/coach-engine';
-import { useCoachNotifications } from '@/hooks/useCoachNotifications';
 
 
 const DashboardPage: FC = () => {
@@ -37,8 +36,6 @@ const DashboardPage: FC = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [limitToDelete, setLimitToDelete] = useState<string | null>(null);
 
-  // Coach notifications scheduler
-  useCoachNotifications();
 
   useEffect(() => {
     setCurrentDate(new Date());

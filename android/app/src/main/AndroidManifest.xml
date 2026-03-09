@@ -38,4 +38,14 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Notifications (required for Android 13+ / API 33+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Exact alarm scheduling for timed notifications -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Reschedule notifications after device reboot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Vibrate for notifications -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Keep device awake for scheduled notifications -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 </manifest>
