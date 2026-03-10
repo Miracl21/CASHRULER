@@ -11,14 +11,19 @@ import ComptesPage from './ComptesPage';
 import StatisticsPage from './StatisticsPage';
 import BudgetPage from './BudgetPage';
 import SettingsPage from './SettingsPage';
+import CelebrationPopup from './CelebrationPopup';
 import type { AppActiveTab } from '@/lib/cashruler/types';
 import { useCoachNotifications } from '@/hooks/useCoachNotifications';
+import { useCelebrations } from '@/hooks/useCelebrations';
 
 const AppClient: FC = () => {
   const [activeTab, setActiveTab] = useState<AppActiveTab>('dashboard');
 
   // Coach notifications — always active regardless of which tab is showing
   useCoachNotifications();
+
+  // In-app celebration popups
+  const { current: celebration, dismissCurrent: dismissCelebration } = useCelebrations();
 
   const renderContent = () => {
     switch (activeTab) {
@@ -48,6 +53,7 @@ const AppClient: FC = () => {
       </main>
       <PWAInstallPrompt />
       <BottomNavigationBar activeTab={activeTab} onTabChange={setActiveTab} />
+      <CelebrationPopup data={celebration} onClose={dismissCelebration} />
     </div>
   );
 };

@@ -18,16 +18,16 @@ export interface CoachNotification {
 
 // ─── Phrases courtes ────────────────────────────────────
 const MORNING_TIPS = [
-    'Restez discipliné aujourd\'hui !',
-    'Chaque franc économisé compte !',
-    'Gardez le cap, vous progressez !',
-    'Nouvelle journée, nouveau défi !',
-    'Votre discipline fait la différence !',
+    'Ouvrez CASHRULER avant chaque achat !',
+    'Vérifiez vos limites avant de sortir.',
+    'Votre objectif du jour : 0 dépense inutile.',
+    'Consultez votre budget avant midi.',
+    'Posez-vous la question : "En ai-je vraiment besoin ?"',
 ];
 const EVENING_TIPS = [
-    'Vérifiez vos entrées du jour.',
-    'Petit bilan avant de dormir ?',
-    'Tout est à jour pour aujourd\'hui ?',
+    'Ouvrez l\'app et vérifiez vos entrées.',
+    'Prenez 30 secondes pour tout enregistrer.',
+    'Un rapide bilan vous gardera en contrôle.',
 ];
 
 function pick<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -61,7 +61,7 @@ export function generateMorningNotification(
 
     return {
         id: 1001,
-        title: 'CASHRULER — Bonjour !',
+        title: 'CASHRULER — Votre plan du jour',
         body: parts.join(' '),
         type: 'morning',
     };
@@ -83,14 +83,14 @@ export function generateEveningNotification(
         body = `Bonsoir ${name} ! ${count} dépense${count > 1 ? 's' : ''} pour ${total.toLocaleString('fr-FR')} ${CURRENCY_SYMBOL}. ${pick(EVENING_TIPS)}`;
     }
 
-    return { id: 1002, title: 'CASHRULER — Bilan du soir', body, type: 'evening' };
+    return { id: 1002, title: 'CASHRULER — Bilan du jour', body, type: 'evening' };
 }
 
 // ─── 3. Nudge Notification ──────────────────────────────
 export function generateNudgeNotification(hasActivityToday: boolean): CoachNotification {
     const body = hasActivityToday
-        ? 'Bonne continuation ! Vous êtes discipliné aujourd\'hui.'
-        : 'Aucune transaction aujourd\'hui. Journée sans dépense ou oubli ?';
+        ? 'Bien joué ! Vous êtes discipliné. Continuez demain aussi.'
+        : 'Rien enregistré aujourd\'hui. Ouvrez CASHRULER pour mettre à jour.';
 
     return { id: 1003, title: 'CASHRULER — Rappel', body, type: 'nudge' };
 }
