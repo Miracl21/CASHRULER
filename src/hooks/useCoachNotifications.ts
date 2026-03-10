@@ -1,16 +1,20 @@
 'use client';
 
 /**
- * useCoachNotifications — Schedules native notifications via Capacitor
- * Uses LocalNotifications.schedule() for timed notifications that fire
- * even when the app is in background or closed.
- * Falls back to in-app toast notifications when Capacitor is unavailable.
+ * useCoachNotifications — Complete notification system via Capacitor
+ *
+ * Key points:
+ * 1. Creates an Android notification channel WITH sound + vibration
+ * 2. Schedules daily morning/evening notifications
+ * 3. Fires instant alerts for budget, milestones, etc.
+ * 4. Lives in AppClient (always mounted)
  */
 
 import { useEffect, useRef, useCallback } from 'react';
 import { format, parseISO } from 'date-fns';
 import { useAppContext } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
+import type { Expense, ExpenseLimit, PurchaseGoal } from '@/lib/cashruler/types';
 import {
     generateMorningNotification,
     generateEveningNotification,
@@ -22,145 +26,155 @@ import {
     type CoachNotification,
 } from '@/lib/cashruler/coach-engine';
 
-// ─── LocalStorage keys for deduplication ─────────────────
-const ACKNOWLEDGED_MILESTONES_KEY = 'cashruler_milestones';
-const LAST_MORNING_KEY = 'cashruler_last_morning';
-const LAST_EVENING_KEY = 'cashruler_last_evening';
+// ─── Constants ───────────────────────────────────────────
+const CHANNEL_ID = 'cashruler_coach';
+const MILESTONES_KEY = 'cashruler_milestones';
 const LAST_NUDGE_KEY = 'cashruler_last_nudge';
 const LAST_SCHEDULE_KEY = 'cashruler_last_schedule';
-const BUDGET_ALERTS_KEY = 'cashruler_budget_alerts_sent';
+const BUDGET_ALERTS_KEY = 'cashruler_budget_alerts_';
+const SAVINGS_KEY = 'cashruler_savings_reminder';
+const NOTIF_CONFIRMED_KEY = 'cashruler_notif_confirmed';
 
 function getToday(): string {
     return format(new Date(), 'yyyy-MM-dd');
 }
 
-function wasAlreadySentToday(key: string): boolean {
+function wasSentToday(key: string): boolean {
     if (typeof window === 'undefined') return true;
     return localStorage.getItem(key) === getToday();
 }
 
-function markSentToday(key: string) {
+function markSent(key: string) {
     if (typeof window !== 'undefined') {
         localStorage.setItem(key, getToday());
     }
 }
 
-// ─── Send notification via Capacitor or fallback to toast ─
-async function sendNotification(notif: CoachNotification) {
+// ─── Create notification channel (Android 8+) ──────────
+// This is THE critical piece: without a channel with sound+vibration,
+// Android will show silent notifications or not show them at all.
+async function ensureNotificationChannel() {
+    try {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+
+        await LocalNotifications.createChannel({
+            id: CHANNEL_ID,
+            name: 'Coach Financier',
+            description: 'Notifications du coach financier CASHRULER',
+            importance: 5, // MAX — heads-up + sound + vibration
+            visibility: 1, // PUBLIC
+            sound: 'default',
+            vibration: true,
+            lights: true,
+            lightColor: '#10b981',
+        });
+
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// ─── Send a notification immediately ────────────────────
+async function fireNotification(notif: CoachNotification) {
     if (typeof window === 'undefined') return;
 
     try {
         const { LocalNotifications } = await import('@capacitor/local-notifications');
-        const permResult = await LocalNotifications.checkPermissions();
-
-        if (permResult.display !== 'granted') {
-            const reqResult = await LocalNotifications.requestPermissions();
-            if (reqResult.display !== 'granted') {
-                // Fall back to toast
-                toast({ title: notif.title, description: notif.body });
-                return;
-            }
-        }
+        const perm = await LocalNotifications.checkPermissions();
+        if (perm.display !== 'granted') return;
 
         await LocalNotifications.schedule({
             notifications: [{
                 id: notif.id,
                 title: notif.title,
                 body: notif.body,
+                channelId: CHANNEL_ID,
                 smallIcon: 'ic_stat_icon',
                 largeIcon: 'ic_launcher',
                 sound: 'default',
-                schedule: notif.scheduleAt ? { at: notif.scheduleAt } : undefined,
             }],
         });
     } catch {
-        // Capacitor not available (web) — use toast as fallback
+        // Web fallback
         toast({ title: notif.title, description: notif.body });
     }
 }
 
-// ─── Schedule daily notifications (morning + evening) ─────
-async function scheduleDailyNotifications(
-    morningTime: string,
-    eveningTime: string,
-    username: string | undefined,
-    expenseLimits: import('@/lib/cashruler/types').ExpenseLimit[],
-    purchaseGoals: import('@/lib/cashruler/types').PurchaseGoal[],
-    getPurchaseGoalContributionsTotal: (id: string) => number,
-    todayExpenses: import('@/lib/cashruler/types').Expense[],
-) {
-    if (typeof window === 'undefined') return;
-
+// ─── Schedule a notification for a future time ──────────
+async function scheduleNotification(notif: CoachNotification, at: Date) {
     try {
         const { LocalNotifications } = await import('@capacitor/local-notifications');
-        const permResult = await LocalNotifications.checkPermissions();
-        if (permResult.display !== 'granted') return;
+        const perm = await LocalNotifications.checkPermissions();
+        if (perm.display !== 'granted') return;
 
-        // Cancel existing scheduled notifications (IDs 1001-1003 are coach daily)
-        try {
-            await LocalNotifications.cancel({ notifications: [{ id: 1001 }, { id: 1002 }, { id: 1003 }] });
-        } catch { /* ok */ }
-
-        const now = new Date();
-        const today = now.toISOString().slice(0, 10);
-        const notifications: Array<{
-            id: number;
-            title: string;
-            body: string;
-            smallIcon: string;
-            largeIcon: string;
-            sound: string;
-            schedule: { at: Date; allowWhileIdle: boolean };
-        }> = [];
-
-        // ── Morning notification ──
-        const [mH, mM] = morningTime.split(':').map(Number);
-        const morningDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), mH, mM, 0);
-        if (morningDate <= now) morningDate.setDate(morningDate.getDate() + 1);
-
-        const morningNotif = generateMorningNotification(
-            username,
-            expenseLimits,
-            purchaseGoals,
-            getPurchaseGoalContributionsTotal,
-        );
-        notifications.push({
-            id: morningNotif.id,
-            title: morningNotif.title,
-            body: morningNotif.body,
-            smallIcon: 'ic_stat_icon',
-            largeIcon: 'ic_launcher',
-            sound: 'default',
-            schedule: { at: morningDate, allowWhileIdle: true },
+        await LocalNotifications.schedule({
+            notifications: [{
+                id: notif.id,
+                title: notif.title,
+                body: notif.body,
+                channelId: CHANNEL_ID,
+                smallIcon: 'ic_stat_icon',
+                largeIcon: 'ic_launcher',
+                sound: 'default',
+                schedule: {
+                    at,
+                    allowWhileIdle: true,
+                },
+            }],
         });
-
-        // ── Evening notification ──
-        const [eH, eM] = eveningTime.split(':').map(Number);
-        const eveningDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eH, eM, 0);
-        if (eveningDate <= now) eveningDate.setDate(eveningDate.getDate() + 1);
-
-        const eveningNotif = generateEveningNotification(username, todayExpenses);
-        notifications.push({
-            id: eveningNotif.id,
-            title: eveningNotif.title,
-            body: eveningNotif.body,
-            smallIcon: 'ic_stat_icon',
-            largeIcon: 'ic_launcher',
-            sound: 'default',
-            schedule: { at: eveningDate, allowWhileIdle: true },
-        });
-
-        // Schedule all
-        if (notifications.length > 0) {
-            await LocalNotifications.schedule({ notifications });
-            localStorage.setItem(LAST_SCHEDULE_KEY, today);
-        }
-    } catch (e) {
-        console.warn('[Coach] Failed to schedule daily notifications:', e);
+    } catch {
+        // Silently fail on web
     }
 }
 
-// ─── Main hook ───────────────────────────────────────────
+// ─── Cancel specific notification IDs ───────────────────
+async function cancelNotifications(ids: number[]) {
+    try {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        await LocalNotifications.cancel({
+            notifications: ids.map(id => ({ id })),
+        });
+    } catch { /* ok */ }
+}
+
+// ─── Schedule daily morning + evening ───────────────────
+async function scheduleDailyPair(
+    morningTime: string,
+    eveningTime: string,
+    username: string | undefined,
+    expenseLimits: ExpenseLimit[],
+    purchaseGoals: PurchaseGoal[],
+    getTotal: (id: string) => number,
+    todayExpenses: Expense[],
+) {
+    // Cancel previous daily notifications
+    await cancelNotifications([1001, 1002]);
+
+    const now = new Date();
+
+    // ── Morning ──
+    const [mH, mM] = morningTime.split(':').map(Number);
+    const morningAt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), mH, mM, 0);
+    if (morningAt <= now) morningAt.setDate(morningAt.getDate() + 1);
+
+    const morningNotif = generateMorningNotification(username, expenseLimits, purchaseGoals, getTotal);
+    await scheduleNotification(morningNotif, morningAt);
+
+    // ── Evening ──
+    const [eH, eM] = eveningTime.split(':').map(Number);
+    const eveningAt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eH, eM, 0);
+    if (eveningAt <= now) eveningAt.setDate(eveningAt.getDate() + 1);
+
+    const eveningNotif = generateEveningNotification(username, todayExpenses);
+    await scheduleNotification(eveningNotif, eveningAt);
+
+    localStorage.setItem(LAST_SCHEDULE_KEY, getToday());
+}
+
+// ═══════════════════════════════════════════════════════════
+// ═══ MAIN HOOK ════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════
 export function useCoachNotifications() {
     const {
         userSettings,
@@ -173,23 +187,64 @@ export function useCoachNotifications() {
     } = useAppContext();
 
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const hasScheduledRef = useRef(false);
+    const initDoneRef = useRef(false);
 
-    // ── Schedule daily notifications via Capacitor ──
+    // ── 1. Initialize: request permission, create channel, confirm ──
+    useEffect(() => {
+        if (!userSettings.enableCoachNotifications) return;
+
+        async function init() {
+            if (initDoneRef.current) return;
+
+            try {
+                const { LocalNotifications } = await import('@capacitor/local-notifications');
+
+                // Request permission
+                let perm = await LocalNotifications.checkPermissions();
+                if (perm.display !== 'granted') {
+                    perm = await LocalNotifications.requestPermissions();
+                }
+                if (perm.display !== 'granted') return;
+
+                // Create channel with sound + vibration
+                await ensureNotificationChannel();
+
+                // Send confirmation notification (once)
+                if (!localStorage.getItem(NOTIF_CONFIRMED_KEY)) {
+                    await LocalNotifications.schedule({
+                        notifications: [{
+                            id: 9999,
+                            title: 'CASHRULER — Coach activé !',
+                            body: 'Vous recevrez des rappels matin et soir. Son et vibration activés.',
+                            channelId: CHANNEL_ID,
+                            smallIcon: 'ic_stat_icon',
+                            largeIcon: 'ic_launcher',
+                            sound: 'default',
+                        }],
+                    });
+                    localStorage.setItem(NOTIF_CONFIRMED_KEY, 'true');
+                }
+
+                initDoneRef.current = true;
+            } catch {
+                // Not Capacitor
+            }
+        }
+
+        init();
+    }, [userSettings.enableCoachNotifications]);
+
+    // ── 2. Schedule daily notifications ──
     const scheduleDaily = useCallback(async () => {
         if (!userSettings.enableCoachNotifications) return;
-        if (hasScheduledRef.current) return;
+        if (typeof window === 'undefined') return;
 
         const today = getToday();
-        const lastSchedule = typeof window !== 'undefined' ? localStorage.getItem(LAST_SCHEDULE_KEY) : null;
-        if (lastSchedule === today) {
-            hasScheduledRef.current = true;
-            return; // Already scheduled today
-        }
+        if (localStorage.getItem(LAST_SCHEDULE_KEY) === today) return;
 
         const todayExpenses = expenses.filter(e => format(parseISO(e.date), 'yyyy-MM-dd') === today);
 
-        await scheduleDailyNotifications(
+        await scheduleDailyPair(
             userSettings.morningNotificationTime || '07:30',
             userSettings.eveningNotificationTime || '20:00',
             userSettings.username,
@@ -198,136 +253,91 @@ export function useCoachNotifications() {
             getPurchaseGoalContributionsTotal,
             todayExpenses,
         );
-
-        hasScheduledRef.current = true;
     }, [userSettings, expenses, expenseLimits, purchaseGoals, getPurchaseGoalContributionsTotal]);
 
-    // ── Check instant notifications (budget alerts, milestones, etc.) ──
-    const checkInstantNotifications = useCallback(() => {
+    // ── 3. Check instant notifications ──
+    const checkInstant = useCallback(() => {
         if (!userSettings.enableCoachNotifications) return;
         if (typeof window === 'undefined') return;
 
         const now = new Date();
         const today = getToday();
 
-        // ── Nudge at 18:00 if no activity ──
-        if (userSettings.enableNudgeNotification && !wasAlreadySentToday(LAST_NUDGE_KEY) && now.getHours() >= 18) {
-            const hasExpenses = expenses.some(e => format(parseISO(e.date), 'yyyy-MM-dd') === today);
-            const hasIncomes = incomes.some(i => format(parseISO(i.date), 'yyyy-MM-dd') === today);
-            if (!hasExpenses && !hasIncomes) {
-                const notif = generateNudgeNotification(false);
-                sendNotification(notif);
-                markSentToday(LAST_NUDGE_KEY);
+        // Nudge at 18:00
+        if (userSettings.enableNudgeNotification && !wasSentToday(LAST_NUDGE_KEY) && now.getHours() >= 18) {
+            const hasActivity = expenses.some(e => format(parseISO(e.date), 'yyyy-MM-dd') === today)
+                || incomes.some(i => format(parseISO(i.date), 'yyyy-MM-dd') === today);
+            if (!hasActivity) {
+                fireNotification(generateNudgeNotification(false));
+                markSent(LAST_NUDGE_KEY);
             }
         }
 
-        // ── Real-time budget alerts ──
+        // Budget alerts
         if (userSettings.enableRealTimeAlerts) {
             const currentMonth = format(now, 'yyyy-MM');
             const monthExpenses = expenses.filter(e => e.date.startsWith(currentMonth));
             const alerts = checkBudgetAlerts(monthExpenses, expenseLimits);
 
-            // Dedup: only send alerts not already sent today
-            const sentAlerts: string[] = JSON.parse(localStorage.getItem(BUDGET_ALERTS_KEY + today) || '[]');
-            alerts.forEach(a => {
-                const key = `${a.title}-${a.body.slice(0, 40)}`;
-                if (!sentAlerts.includes(key)) {
-                    sendNotification(a);
-                    sentAlerts.push(key);
-                    localStorage.setItem(BUDGET_ALERTS_KEY + today, JSON.stringify(sentAlerts));
+            const sentKey = BUDGET_ALERTS_KEY + today;
+            const sent: string[] = JSON.parse(localStorage.getItem(sentKey) || '[]');
+            for (const a of alerts) {
+                const sig = `${a.body.slice(0, 30)}`;
+                if (!sent.includes(sig)) {
+                    fireNotification(a);
+                    sent.push(sig);
+                    localStorage.setItem(sentKey, JSON.stringify(sent));
                 }
-            });
+            }
         }
 
-        // ── Recurring transaction reminders ──
-        const recurringReminders = checkRecurringReminders(recurringTransactions);
-        recurringReminders.forEach(r => sendNotification(r));
-
-        // ── Savings reminders ──
-        const savingsReminder = generateSavingsReminder(purchaseGoals, getPurchaseGoalContributionsTotal);
-        if (savingsReminder && !wasAlreadySentToday('cashruler_savings_reminder')) {
-            sendNotification(savingsReminder);
-            markSentToday('cashruler_savings_reminder');
+        // Recurring reminders
+        const recurring = checkRecurringReminders(recurringTransactions);
+        for (const r of recurring) {
+            fireNotification(r);
         }
 
-        // ── Milestone checks ──
-        const acknowledged: string[] = JSON.parse(localStorage.getItem(ACKNOWLEDGED_MILESTONES_KEY) || '[]');
-        const milestone = checkMilestones(purchaseGoals, getPurchaseGoalContributionsTotal, acknowledged);
+        // Savings reminders
+        const savings = generateSavingsReminder(purchaseGoals, getPurchaseGoalContributionsTotal);
+        if (savings && !wasSentToday(SAVINGS_KEY)) {
+            fireNotification(savings);
+            markSent(SAVINGS_KEY);
+        }
+
+        // Milestones
+        const acked: string[] = JSON.parse(localStorage.getItem(MILESTONES_KEY) || '[]');
+        const milestone = checkMilestones(purchaseGoals, getPurchaseGoalContributionsTotal, acked);
         if (milestone) {
-            sendNotification(milestone);
-            const matchGoalThreshold = milestone.body.match(/(\d+)% atteint/);
-            if (matchGoalThreshold) {
+            fireNotification(milestone);
+            const match = milestone.body.match(/(\d+)% atteint/);
+            if (match) {
                 const goalId = purchaseGoals.find(g => milestone.body.includes(g.title))?.id;
                 if (goalId) {
-                    acknowledged.push(`${goalId}-${matchGoalThreshold[1]}`);
-                    localStorage.setItem(ACKNOWLEDGED_MILESTONES_KEY, JSON.stringify(acknowledged));
+                    acked.push(`${goalId}-${match[1]}`);
+                    localStorage.setItem(MILESTONES_KEY, JSON.stringify(acked));
                 }
             }
         }
     }, [userSettings, expenses, incomes, expenseLimits, purchaseGoals, recurringTransactions, getPurchaseGoalContributionsTotal]);
 
-    // ── Request permission on mount + send confirmation ──
-    useEffect(() => {
-        async function requestAndConfirm() {
-            try {
-                const { LocalNotifications } = await import('@capacitor/local-notifications');
-                let result = await LocalNotifications.checkPermissions();
-
-                if (result.display !== 'granted') {
-                    result = await LocalNotifications.requestPermissions();
-                }
-
-                if (result.display === 'granted') {
-                    // Send a confirmation notification on first grant
-                    const confirmKey = 'cashruler_notif_confirmed';
-                    if (!localStorage.getItem(confirmKey)) {
-                        await LocalNotifications.schedule({
-                            notifications: [{
-                                id: 9999,
-                                title: '✅ CASHRULER — Notifications activées !',
-                                body: 'Votre coach financier est prêt. Vous recevrez des rappels matin et soir pour rester discipliné. 💪',
-                                smallIcon: 'ic_stat_icon',
-                                largeIcon: 'ic_launcher',
-                                sound: 'default',
-                            }],
-                        });
-                        localStorage.setItem(confirmKey, 'true');
-                    }
-                }
-            } catch {
-                // Not on Capacitor — skip
-            }
-        }
-        if (userSettings.enableCoachNotifications) {
-            requestAndConfirm();
-        }
-    }, [userSettings.enableCoachNotifications]);
-
-    // ── Main effect: schedule daily + check instant ──
+    // ── 4. Main scheduler effect ──
     useEffect(() => {
         if (!userSettings.enableCoachNotifications) {
-            // Cancel all scheduled notifications if coach is disabled
-            (async () => {
-                try {
-                    const { LocalNotifications } = await import('@capacitor/local-notifications');
-                    await LocalNotifications.cancel({ notifications: [{ id: 1001 }, { id: 1002 }, { id: 1003 }] });
-                } catch { /* ok */ }
-            })();
+            // Coach disabled: cancel scheduled notifications
+            cancelNotifications([1001, 1002, 1003]);
             return;
         }
 
-        // Schedule daily notifications
+        // Schedule daily pair
         scheduleDaily();
 
-        // Check instant notifications after a short delay
-        const timeout = setTimeout(checkInstantNotifications, 3000);
-
-        // Re-check every 60 seconds (for nudge, budget alerts, milestones)
-        timerRef.current = setInterval(checkInstantNotifications, 60_000);
+        // Check instant notifications after 3s then every 60s
+        const timeout = setTimeout(checkInstant, 3000);
+        timerRef.current = setInterval(checkInstant, 60_000);
 
         return () => {
             clearTimeout(timeout);
             if (timerRef.current) clearInterval(timerRef.current);
         };
-    }, [userSettings.enableCoachNotifications, scheduleDaily, checkInstantNotifications]);
+    }, [userSettings.enableCoachNotifications, scheduleDaily, checkInstant]);
 }
