@@ -13,18 +13,20 @@ const config: CapacitorConfig = {
             iconColor: '#10b981',
             sound: 'default',
         },
+        SplashScreen: {
+            launchAutoHide: true,
+            launchShowDuration: 2000,
+            backgroundColor: '#0a1f1a',
+            androidScaleType: 'CENTER',
+            showSpinner: false,
+            splashFullScreen: true,
+            splashImmersive: true,
+        },
         Haptics: {},
         StatusBar: {
             style: 'DARK',
             overlaysWebView: true,
             backgroundColor: '#00000000',
-        },
-        SplashScreen: {
-            launchAutoHide: true,
-            launchShowDuration: 2000,
-            backgroundColor: '#0a0f0d',
-            androidScaleType: 'CENTER_CROP',
-            showSpinner: false,
         },
     },
 };
