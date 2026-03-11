@@ -111,8 +111,18 @@ export default function CelebrationPopup({
     useEffect(() => {
         if (data) {
             setIsLeaving(false);
-            // Small delay for mount animation
             requestAnimationFrame(() => setIsVisible(true));
+            // Haptic vibration for attention
+            (async () => {
+                try {
+                    const { Haptics, ImpactStyle } = await import('@capacitor/haptics');
+                    await Haptics.impact({ style: ImpactStyle.Heavy });
+                    // Double vibration for celebration feel
+                    setTimeout(async () => {
+                        try { await Haptics.impact({ style: ImpactStyle.Medium }); } catch { /* ok */ }
+                    }, 200);
+                } catch { /* web fallback — no vibration */ }
+            })();
         } else {
             setIsVisible(false);
         }
@@ -229,17 +239,17 @@ export default function CelebrationPopup({
 
                 {/* Body */}
                 <div style={{
-                    background: 'var(--background, #0a0f0d)',
+                    background: '#111816',
                     padding: '20px 24px 24px',
                 }}>
                     {/* Message */}
                     <p style={{
-                        color: 'var(--foreground, #fff)',
+                        color: '#ffffff',
                         fontSize: '15px',
                         lineHeight: 1.6,
                         textAlign: 'center',
                         margin: '0 0 8px',
-                        fontWeight: 500,
+                        fontWeight: 600,
                     }}>
                         {data.message}
                     </p>
@@ -247,7 +257,7 @@ export default function CelebrationPopup({
                     {/* Detail */}
                     {data.detail && (
                         <p style={{
-                            color: 'var(--muted-foreground, rgba(255,255,255,0.5))',
+                            color: '#9ca3af',
                             fontSize: '13px',
                             textAlign: 'center',
                             margin: '0 0 16px',
@@ -290,9 +300,9 @@ export default function CelebrationPopup({
                                 width: '100%',
                                 padding: '12px',
                                 borderRadius: '12px',
-                                background: 'var(--muted, rgba(255,255,255,0.05))',
-                                border: '1px solid var(--border, rgba(255,255,255,0.1))',
-                                color: 'var(--foreground, #fff)',
+                                background: 'rgba(255,255,255,0.08)',
+                                border: '1px solid rgba(255,255,255,0.15)',
+                                color: '#ffffff',
                                 fontSize: '14px',
                                 fontWeight: 600,
                                 cursor: 'pointer',
